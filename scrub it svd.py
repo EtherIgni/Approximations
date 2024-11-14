@@ -14,24 +14,20 @@ svd_vals=data[:cut_off_point,7:13]
 true_matrices=data[:cut_off_point,1:7]
 resonance_separations=data[:cut_off_point,0]
 penetrabilities=data[:cut_off_point,15:]
-gamma_matrices=np.zeros((cut_off_point,6))
+gamma_matrices=np.zeros((cut_off_point,2,3))
+svd_matrix=np.zeros((3,3,cut_off_point))
+svd_matrix[0,0,:]=svd_vals[:,0]
+svd_matrix[0,1,:]=svd_vals[:,1]
+svd_matrix[0,2,:]=svd_vals[:,2]
+svd_matrix[1,0,:]=svd_vals[:,3]
+svd_matrix[1,2,:]=svd_vals[:,4]
+svd_matrix[2,2,:]=svd_vals[:,5]
 for i in range(cut_off_point):
-    svd_matrix=np.array([[svd_vals[i,0],svd_vals[i,1],svd_vals[i,2]],[svd_vals[i,3],0,svd_vals[i,4]],[0,0,svd_vals[i,5]]])
-    U=svd_matrix[:2,0][:,None]
-    S=svd_matrix[0,1]
-    Vh=svd_matrix[:3,2][None]
+    U=svd_matrix[:2,0,i][:,None]
+    S=svd_matrix[0,1,i]
+    Vh=svd_matrix[:3,2,i][None]
     gamma_matrix=(U@Vh)*S
-    gamma_matrices[i,0]=gamma_matrix[0,0]
-    gamma_matrices[i,1]=gamma_matrix[0,1]
-    gamma_matrices[i,2]=gamma_matrix[0,2]
-    gamma_matrices[i,3]=gamma_matrix[1,0]
-    gamma_matrices[i,4]=gamma_matrix[1,1]
-    gamma_matrices[i,5]=gamma_matrix[1,2]
-
-print(np.std(gamma_matrices[:,0]))
-print(np.std(gamma_matrices[:,1]))
-print(np.std(gamma_matrices[:,2]))
-print(np.std(gamma_matrices[:,3]))
+    gamma_matrices[i]=gamma_matrix
 
 
 
@@ -106,23 +102,62 @@ titles=[["Neutron 1","Neutron 2"],
         ["First Gamma 1","First Gamma 2"],
         ["Second Gamma 1","Second Gamma 2"]]
 row_col_conversion=[(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)]
-for index,row_col_set in enumerate(row_col_conversion):
-    row,col=row_col_set
-    std=np.std(gamma_matrices[:,index])
-    if(std>0):
-        bins=np.linspace(-3*std,3*std,num_bins)
-    else:
-        bins=np.linspace(-1,1,num_bins)
-    ax[row,col].hist(gamma_matrices[:,index],bins=bins,color="red",density=True)
-    ax[row,col].set_ylabel("Frequency")
-    ax[row,col].set_xlabel("matrix value")
-    ax[row,col].set_title("neutron 1")
-    ax[row,col].text(((ax[row,col].get_xlim()[1]-ax[row,col].get_xlim()[0])*1/3)+ax[row,col].get_xlim()[0],
-                        ((ax[row,col].get_ylim()[1]-ax[row,col].get_ylim()[0])*6/7)+ax[row,col].get_ylim()[0],
-                    'Variance: {br:.6f}'.format(br=std**2), style='italic', bbox={
-                    'facecolor': 'grey', 'alpha': 1, 'pad': 10})
+for row in range(2):
+    for col in range(3):
+        if((row,col) in row_col_conversion):
+            std=np.std(gamma_matrices[:,row,col])
+            if(std>0):
+                bins=np.linspace(-3*std,3*std,num_bins)
+            else:
+                bins=np.linspace(-1,1,num_bins)
+            ax[row,col].hist(gamma_matrices[:,row,col],bins=bins,color="red",density=True)
+            ax[row,col].set_ylabel("Frequency")
+            ax[row,col].set_xlabel("matrix value")
+            ax[row,col].set_title(titles[col][row])
+            ax[row,col].text(((ax[row,col].get_xlim()[1]-ax[row,col].get_xlim()[0])*1/3)+ax[row,col].get_xlim()[0],
+                                ((ax[row,col].get_ylim()[1]-ax[row,col].get_ylim()[0])*6/7)+ax[row,col].get_ylim()[0],
+                            'Variance: {br:.6f}'.format(br=std**2), style='italic', bbox={
+                            'facecolor': 'grey', 'alpha': 1, 'pad': 10})
+        else:
+            fig.delaxes(ax[row,col])
         
 plt.savefig("images/generation results/svd/Fit Plot.png")
+# plt.show()
+plt.close()
+
+
+
+num_bins=30
+fig,ax=plt.subplots(3,3)
+fig.set_figheight(14)
+fig.set_figwidth(20)
+fig.suptitle("SVD Fitted Value Distribution")
+
+titles=[["U 0","U 1"],
+        ["S"],
+        ["Vh 0","Vh 1","Vh 2"]]
+row_col_conversion=[(0,0),(0,1),(0,2),(1,0),(1,2),(2,2)]
+for row in range(3):
+    for col in range(3):
+        if((row,col) in row_col_conversion):
+            distribution=svd_matrix[row,col,:]
+            std=np.std(distribution)
+            if(std>0):
+                bins=np.linspace(-3*std,3*std,num_bins)
+            else:
+                bins=np.linspace(-1,1,num_bins)
+            ax[row,col].hist(distribution,bins=bins,color="cyan",density=True)
+            ax[row,col].set_ylabel("Frequency")
+            ax[row,col].set_xlabel("matrix value")
+            ax[row,col].set_title(titles[col][row])
+            ax[row,col].text(((ax[row,col].get_xlim()[1]-ax[row,col].get_xlim()[0])*1/3)+ax[row,col].get_xlim()[0],
+                                ((ax[row,col].get_ylim()[1]-ax[row,col].get_ylim()[0])*6/7)+ax[row,col].get_ylim()[0],
+                            'Variance: {br:.6f}'.format(br=std**2), style='italic', bbox={
+                            'facecolor': 'grey', 'alpha': 1, 'pad': 10})
+        else:
+            fig.delaxes(ax[row,col])
+
+plt.savefig("images/generation results/svd/SVD Matrix Plot.png")
 # plt.show()
 plt.close()
 
@@ -140,10 +175,10 @@ titles=[["Neutron 1","Neutron 2"],
 row_col_conversion=[(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)]
 for index,row_col_set in enumerate(row_col_conversion):
     row,col=row_col_set
-    ax[row,col].hist(np.power(gamma_matrices[:,index],2),bins=num_bins,color="magenta",density=True)
+    ax[row,col].hist(np.power(gamma_matrices[:,row,col],2),bins=num_bins,color="magenta",density=True)
     ax[row,col].set_ylabel("Frequency")
     ax[row,col].set_xlabel("matrix value")
-    ax[row,col].set_title("neutron 1")
+    ax[row,col].set_title(titles[col][row])
         
 plt.savefig("images/generation results/svd/Fit Chi Squared.png")
 # plt.show()

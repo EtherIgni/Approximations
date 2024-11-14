@@ -1,2 +1,0 @@
-0 <class 'TypeError'> generate_it_svd.py 100
-1 <class 'TypeError'> generate_it_svd.py 100

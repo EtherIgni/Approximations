@@ -2,15 +2,17 @@ from rmatrix import Particle, ElasticChannel, CaptureChannel, SpinGroup
 import numpy as np
 from copy import deepcopy
 
-class base_reaction():
-    def __init__(self) -> None:
-        self.capture_channels=[]
+class Fundamental():
+    def __init__(self,num_channels,num_resonances) -> None:
+        self.num_channels=num_channels
+        self.num_resonances=num_resonances
         self.incoming_particle=None
         self.outgoing_particle=None
         self.target_particle=None
         self.compound_particle=None
-        self.init_guess_full={}
-        self.init_guess_diag={}
+        self.elastic_channel=None
+        self.capture_channels=[]
+        self.res_energies=[]
     def set_incoming(self,incoming_particle:Particle)->None:
         self.incoming_particle=incoming_particle
     def set_outgoing(self,outgoing_particle:Particle)->None:
@@ -21,8 +23,10 @@ class base_reaction():
         self.compound_particle=compound_particle
     
     def set_elastic_channel(self,J:int,pi:int,ell:int,radius:float,reduced_width_amplitudes:list)->None:
-        assert not(self.incoming_particle==None), "No incoming particle defined."
-        assert not(self.target_particle==None), "No target particle defined."
+        assert not(self.incoming_particle==None), "No incoming particle defined in elastic channel."
+        assert not(self.target_particle==None), "No target particle defined in elastic channel."
+        assert not(len(reduced_width_amplitudes)<self.num_resonances), "Not enough resonances in elastic channel."
+        assert not(len(reduced_width_amplitudes)>self.num_resonances), "Too many resonances in elastic channel."
         self.elastic_channel=ElasticChannel(self.incoming_particle,
                                             self.target_particle,
                                             J,
@@ -34,7 +38,18 @@ class base_reaction():
         return(self.elastic_channel)
     
     def add_capture_channel(self,J:int,pi:int,ell:int,radius:float,reduced_width_amplitudes:list,excitation:float)->None:
-        self.capture_channels.append(CaptureChannel(self.outgoing_particle,self.compound_particle,J,pi,ell,radius,reduced_width_amplitudes, excitation))
+        assert not(self.outgoing_particle==None), "No outgoing particle defined in capture channel."
+        assert not(self.compound_particle==None), "No compound particle defined in capture channel."
+        assert not(len(reduced_width_amplitudes)<self.num_resonances), "Not enough resonances in capture channel."
+        assert not(len(reduced_width_amplitudes)>self.num_resonances), "Too many resonances in capture channel."
+        self.capture_channels.append(CaptureChannel(self.outgoing_particle,
+                                                    self.compound_particle,
+                                                    J,
+                                                    pi,
+                                                    ell,
+                                                    radius,
+                                                    reduced_width_amplitudes,
+                                                    excitation))
     def get_capture_channels(self)->list:
         return(self.capture_channels)
     def remove_capture_channel(self,index:int)->None:
@@ -48,98 +63,35 @@ class base_reaction():
         return(self.energy_grid)
     
     def set_resonance_energies(self,energies:list)->None:
+        assert not(len(energies)<self.num_resonances), "Not enough resonance energies."
+        assert not(len(energies.size)>self.num_resonances), "Too many resonance energies."
         self.res_energies=energies
     def get_resonance_energies(self)->list:
         return(self.res_energies)
     
     def establish_spin_group(self)->None:
+        assert not(self.res_energies==[]), "Resonance energies not set."
+        assert not(self.elastic_channel==[]), "Elastic channel not set."
+        assert not(len(self.capture_channels)<self.num_resonances), "Not enough capture channels set."
+        assert not(len(self.capture_channels)>self.num_resonances), "too many capture channels set."
+        assert not(self.energy_grid==[]), "Energy grid not set."
         self.spin_group=SpinGroup(self.res_energies, self.elastic_channel, self.capture_channels,self.energy_grid)
         self.spin_group.calc_cross_section()
     def get_spin_group(self)->SpinGroup:
         return(self.spin_group)
     
+    def set_gamma_matrix(self,gamma_matrix:np.array)->None:
+        assert gamma_matrix.shape==[self.num_resonances,self.num_channels],"Gamma matrix is the wrong shape."
+        self.spin_group.update_gamma_matrix(gamma_matrix)
     def get_gamma_matrix(self)->np.array:
         return(np.copy(self.spin_group.gamma_matrix))
-    def set_gamma_matrix(self,gamma_matrix:np.array)->None:
-        self.spin_group.update_gamma_matrix(gamma_matrix)
     
     def get_L_matrix(self)->np.array:
         return(self.spin_group.L_matrix)
-    
     def get_cross_section(self)->np.array:
         return(self.spin_group.total_cross_section)
-    
     def get_channels(self)->list:
         return(self.spin_group.channels)
-    
-    
-    
-    def get_gm_from_svd(self,svd_matrix):
-        U=svd_matrix[:self.get_gamma_matrix().shape[0],0][:,None]
-        S=svd_matrix[0,1]
-        Vh=svd_matrix[:self.get_gamma_matrix().shape[1],2][None]
-        gamma_matrix=(U@Vh)*S
-        return(gamma_matrix)
-    
-    
-    
-    def evaluate_multi_channel_error_gm(self,gamma_matrix:np.array)->float:
-        test_spin_group = deepcopy(self.spin_group)
-        test_spin_group.update_gamma_matrix(gamma_matrix)
-        total_error=0
-        for idc,channel in enumerate(test_spin_group.channels):
-            fitted_cross_section=channel.cross_section
-            error=np.power((self.spin_group.channels[idc].cross_section-fitted_cross_section),2)
-            total_error+=np.sum(error)
-        return(total_error)
-        
-    def evaluate_multi_channel_error_svd(self,svd_matrix:list)->float:
-        gamma_matrix=self.get_gm_from_svd(svd_matrix)
-        return(self.evaluate_multi_channel_error_gm(gamma_matrix))
-    
-    def evaluate_total_error_gm(self,gamma_matrix:np.array)->float:
-        test_spin_group = deepcopy(self.spin_group)
-        test_spin_group.update_gamma_matrix(gamma_matrix)
-        error=np.sum(np.power((self.spin_group.total_cross_section-test_spin_group.total_cross_section),2))
-        return(error)
-    
-    def evaluate_real_channel_error_gm(self,gamma_matrix:np.array)->float:
-        test_spin_group = deepcopy(self.spin_group)
-        test_spin_group.update_gamma_matrix(gamma_matrix)
-        
-        neutron_error=np.power((self.spin_group.channels[0].cross_section-test_spin_group.channels[0].cross_section),2)
-        
-        gamma_error=np.zeros(len(neutron_error))
-        for idc in range(1,len(test_spin_group.channels)):
-            error=self.spin_group.channels[idc].cross_section-test_spin_group.channels[idc].cross_section
-            gamma_error+=error
-        gamma_error=np.power(gamma_error,2)
-        
-        total_error=np.sum(neutron_error+gamma_error)
-        return(total_error)
-    
-    def evaluate_total_and_gamma_error_gm(self,gamma_matrix:np.array)->float:
-        test_spin_group = deepcopy(self.spin_group)
-        test_spin_group.update_gamma_matrix(gamma_matrix)
-        
-        total_error=np.zeros(len(self.energy_grid))
-        
-        partial_error=np.zeros(len(total_error))
-        for idc in range(0,len(test_spin_group.channels)):
-            error=self.spin_group.channels[idc].cross_section-test_spin_group.channels[idc].cross_section
-            partial_error+=error
-        partial_error=np.power(partial_error,2)
-        total_error+=partial_error
-        
-        partial_error=np.zeros(len(total_error))
-        for idc in range(1,len(test_spin_group.channels)):
-            error=self.spin_group.channels[idc].cross_section-test_spin_group.channels[idc].cross_section
-            partial_error+=error
-        partial_error=np.power(partial_error,2)
-        total_error+=partial_error
-        
-        total_error=np.sum(total_error)
-        return(total_error)
     
     
     
@@ -255,8 +207,8 @@ class base_reaction():
         U_der=spin_group.omega_matrix@W_der@spin_group.omega_matrix
         return(U_der)
     
-    def derivative_of_elastic_channel(self,spin_group,U_der,channel_num):
-        chan_der=10**24 * np.pi/spin_group.k_sq*(-2*U_der[:,0,channel_num].real+np.conjugate(U_der[:,0,channel_num])*spin_group.U_matrix[:,0,channel_num]+np.conjugate(spin_group.U_matrix[:,0,channel_num])*U_der[:,0,channel_num]).real
+    def derivative_of_elastic_channel(self,spin_group,U_der):
+        chan_der=10**24 * np.pi/spin_group.k_sq*(-2*U_der[:,0,0].real+np.conjugate(U_der[:,0,0])*spin_group.U_matrix[:,0,0]+np.conjugate(spin_group.U_matrix[:,0,0])*U_der[:,0,0]).real
         return(chan_der)
     
     def derivative_of_capture_channel(self,spin_group,U_der,channel_num):
@@ -354,54 +306,3 @@ class base_reaction():
                 SE_der=np.sum(-2*(self.spin_group.total_cross_section-test_spin_group.total_cross_section)*cross_section_der)
                 gradient[idr,idc]=SE_der
         return(gradient)
-    
-    def derivative_numeric_gm(self,gamma_matrix,evaluator,step_size_relative):
-        result=evaluator(gamma_matrix)
-        gradient=np.zeros(gamma_matrix.shape,float)
-        for idr in range(gradient.shape[0]):
-            for idc in range(gradient.shape[1]):
-                gamma_der=np.copy(gamma_matrix)
-                gamma_der[idr,idc]+=step_size_relative*gamma_der[idr,idc]
-                gradient[idr,idc]=(evaluator(gamma_der)-result)/(step_size_relative*gamma_der[idr,idc])
-        return(gradient)
-    
-    def derivative_numeric_svd(self,svd_matrix):
-        step_size_relative=0.0001
-        evaluator=self.evaluate_multi_channel_error_svd
-        result=evaluator(svd_matrix)
-        gradient=np.zeros(svd_matrix.shape,float)
-        gamma_shape=self.get_gamma_matrix().shape
-        
-        for i in range(gamma_shape[0]):
-            svd_der=np.copy(svd_matrix)
-            step=step_size_relative*svd_der[i,0]
-            svd_der[i,0]+=step
-            gradient[i,0]=(evaluator(svd_der)-result)/step
-        
-        svd_der=np.copy(svd_matrix)
-        step=step_size_relative*svd_der[0,1]
-        svd_der[0,1]+=step
-        gradient[0,1]=(evaluator(svd_der)-result)/step
-        
-        for i in range(gamma_shape[1]):
-            svd_der=np.copy(svd_matrix)
-            step=step_size_relative*svd_der[i,2]
-            svd_der[i,2]+=step
-            gradient[i,2]=(evaluator(svd_der)-result)/step
-        
-        return(gradient)
-    
-    
-    def add_initial_guess_full(self,name:str,guess:np.array)->None:
-        self.init_guess_full[name]=guess
-        
-    def remove_initial_guess_full(self,name:str)->None:
-        self.init_guess_full.pop(name)
-        
-    def clear_initial_guesses_full(self)->None:
-        self.init_guess_full={}
-        
-    def get_initial_guess_full(self,name:str)->np.array:
-        return(self.init_guess_full[name])
-    def list_initial_geusses_full(self)->list:
-        return(self.init_guess_full.keys())

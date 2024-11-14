@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from tools import initial_estimates
-import copy
+import os 
+print(os.getcwd())
+from models import gamma_SVD_model
 # matrix=np.zeros((5,4))
 # for idr in range(matrix.shape[0]):
 #     for idc in range(matrix.shape[1]):
@@ -316,8 +317,10 @@ import copy
 
 
 
-p=6
-A=np.eye(p,p+1,1)
-A[:,0]=1
-print(A)
-print(A.nonzero())
+# p=6
+# A=np.eye(p,p+1,1)
+# A[:,0]=1
+# print(A)
+# print(A.nonzero())
+
+problem=gamma_SVD_model.Gamma_SVD()
