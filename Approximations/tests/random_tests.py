@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import os 
 print(os.getcwd())
 from Approximations.models import gamma_SVD_model
+from Approximations.tools import numeric_evaluators
 # matrix=np.zeros((5,4))
 # for idr in range(matrix.shape[0]):
 #     for idc in range(matrix.shape[1]):
@@ -325,9 +326,9 @@ from Approximations.models import gamma_SVD_model
 
 # problem=gamma_SVD_model.Gamma_SVD()
 
-a=np.array([1,2])
-b=a[:,None]
-c=a[None,:]
-print(b)
-print(c)
-print(b@c)
+
+def test_eval(x):
+    return(np.sum(np.power(x,2)))
+
+print(test_eval(np.array([2,2])))
+print(numeric_evaluators.gradient(np.array([2,2],float),test_eval,0.0000000001))

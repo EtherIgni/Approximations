@@ -41,12 +41,12 @@ class Gamma_SVD(basic.Fundamental):
                     channel_ders[0,:]=self.derivative_of_elastic_channel(test_spin_group,U_der)
                     for idx in range(1,len(test_spin_group.channels)):
                         channel_ders[idx,:]=self.derivative_of_capture_channel(test_spin_group,U_der,idx)
-
+                    
                     channel_errors=np.zeros((self.num_channels,len(self.energy_grid)))
                     for idx in range(self.num_channels):
                         channel_errors[idx,:]=self.spin_group.channels[idx].cross_section-test_spin_group.channels[idx].cross_section
                     
-                    partial=np.sum(-2*np.sum(channel_errors[1:,:],0)*np.sum(channel_errors[1:,:],0)-2*np.sum(channel_errors,0)*np.sum(channel_errors,0))
+                    partial=-np.sum(2*np.sum(channel_errors[1:,:],0)*np.sum(channel_ders[1:,:],0))-np.sum(2*np.sum(channel_errors,0)*np.sum(channel_ders,0))
                     
                     return(partial)
         
@@ -81,8 +81,7 @@ class Gamma_SVD(basic.Fundamental):
 
         return(gradient)
 
-
-
+    
 
     def add_initial_guesses(self,name:str,guess:np.array)->None:
         self.init_guess_full[name]=guess

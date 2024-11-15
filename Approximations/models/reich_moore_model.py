@@ -27,7 +27,8 @@ class Reich_Moore(basic.Fundamental):
         for idx in range(self.num_channels):
             errors[idx,:]=self.spin_group.channels[idx].cross_section-test_spin_group.channels[idx].cross_section
 
-        total_error=np.sum(np.power(np.sum(errors[1:,:],0),2))+np.sum(np.power(np.sum(errors,0),2))
+        total_error=np.sum(np.power(np.sum(errors[1:,:],0),2)+np.power(np.sum(errors,0),2))
+        total_error=np.sum(np.power(np.sum(errors[1:,:],0),2)+np.power(np.sum(errors,0),2))
 
         return(total_error)
     
@@ -44,15 +45,14 @@ class Reich_Moore(basic.Fundamental):
                     for idx in range(self.num_channels):
                         channel_errors[idx,:]=self.spin_group.channels[idx].cross_section-test_spin_group.channels[idx].cross_section
                     
-                    partial=np.sum(-2*np.sum(channel_errors[1:,:],0)*np.sum(channel_errors[1:,:],0)-2*np.sum(channel_errors,0)*np.sum(channel_errors,0))
-                    
+                    partial=-np.sum(2*np.sum(channel_errors[1:,:],0)*np.sum(channel_ders[1:,:],0))-np.sum(2*np.sum(channel_errors,0)*np.sum(channel_ders,0))
                     return(partial)
         
         gamma_matrix=self.reshape(gamma_elements)
         test_spin_group = deepcopy(self.spin_group)
         test_spin_group.update_gamma_matrix(gamma_matrix)
 
-        gradient=np.zeros(self.num_resonances*3)
+        gradient=np.zeros(self.num_resonances*2)
 
         for idx in range(self.num_resonances):
             gamma_der=np.zeros((self.num_resonances,self.num_channels),float)
@@ -66,7 +66,7 @@ class Reich_Moore(basic.Fundamental):
 
         return(gradient)
     
-
+    
 
     def calc_hessian_and_gradient(self,gamma_matrix,iterable_mapping):
         data_types=[float,complex]
