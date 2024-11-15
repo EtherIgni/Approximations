@@ -1,11 +1,12 @@
 import numpy as np
 from copy import deepcopy
-from tools import fitting,distributions,initial_estimates
 import matplotlib.pyplot as plt
-from models import basic
-from rmatrix import Particle
 import numpy as np
 import time
+
+from rmatrix import Particle
+from Approximations.tools import fitting,distributions,initial_estimates
+from Approximations.models import reich_moore_model
 
 separation_energy=float(7.5767E6) #ev
 resonance_distance=600 #ev
@@ -16,7 +17,7 @@ first_excited_state=float(6.237E3) #ev
 energy_grid_buffer=1 #ev
 
 def create_leveled_model(neutron_variance,gamma_variance,resonance_avg_separation):
-    model=basic.base_reaction()
+    model=reich_moore_model.Reich_Moore(3,2)
 
     resonance_gap=distributions.sample_wigner_invCDF(1)*resonance_avg_separation
 
@@ -82,29 +83,36 @@ def create_leveled_model(neutron_variance,gamma_variance,resonance_avg_separatio
 
 problem=create_leveled_model(neutron_variance,gamma_variance,resonance_avg_separation)
 test_gamma=problem.get_gamma_matrix()
-test_gamma[0,0]=1.001
-iterable_mapping=np.array([[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],int)
-
-
-
-print(problem.get_gamma_matrix())
-
-#test_gamma=np.ones(problem.get_gamma_matrix().shape)
-print(problem.evaluate_total_and_gamma_error_gm(test_gamma))
-print("")
-for iteration in range(300):
-    gradient,hessian=problem.calc_hessian_and_gradient(test_gamma,iterable_mapping)
-    #print(gradient,hessian)
-    delta_grad=-np.linalg.inv(hessian)@gradient
-    delta_mat=np.zeros(test_gamma.shape)
-    for i in range(delta_grad.size):
-        delta_mat[iterable_mapping[i,0],iterable_mapping[i,1]]=delta_grad[i]
-    test_gamma=test_gamma+delta_mat
-    print(np.sum(np.power(gradient,2)))
-print("")
 print(test_gamma)
-print(problem.evaluate_total_and_gamma_error_gm(test_gamma))
-print(np.sum(np.power(gradient,2)))
+initial_estimate=np.zeros(problem.num_resonances*2)
+initial_estimate[:problem.num_resonances]=test_gamma[:,0]
+initial_estimate[problem.num_resonances:problem.num_resonances*2]=np.diag(test_gamma[:,1:])
+print(initial_estimate)
+error_evaluation=problem.evaluate(initial_estimate)
+print(error_evaluation)
+# test_gamma[0,0]=1.001
+# iterable_mapping=np.array([[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]],int)
+
+
+
+# print(problem.get_gamma_matrix())
+
+# #test_gamma=np.ones(problem.get_gamma_matrix().shape)
+# print(problem.evaluate_total_and_gamma_error_gm(test_gamma))
+# print("")
+# for iteration in range(300):
+#     gradient,hessian=problem.calc_hessian_and_gradient(test_gamma,iterable_mapping)
+#     #print(gradient,hessian)
+#     delta_grad=-np.linalg.inv(hessian)@gradient
+#     delta_mat=np.zeros(test_gamma.shape)
+#     for i in range(delta_grad.size):
+#         delta_mat[iterable_mapping[i,0],iterable_mapping[i,1]]=delta_grad[i]
+#     test_gamma=test_gamma+delta_mat
+#     print(np.sum(np.power(gradient,2)))
+# print("")
+# print(test_gamma)
+# print(problem.evaluate_total_and_gamma_error_gm(test_gamma))
+# print(np.sum(np.power(gradient,2)))
 
 
 

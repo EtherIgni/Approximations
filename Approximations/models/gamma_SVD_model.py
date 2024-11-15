@@ -1,6 +1,7 @@
 import numpy as np
-from models import basic
 from copy import deepcopy
+
+from Approximations.models import basic
 
 class Gamma_SVD(basic.Fundamental):
     def __init__(self, *args, **kwargs):
@@ -15,7 +16,7 @@ class Gamma_SVD(basic.Fundamental):
         gamma_matrix=np.zeros((self.num_resonances,self.num_channels),float)
         gamma_matrix[:,0]=gamma_elements[:self.num_resonances]
         U=gamma_elements[self.num_resonances:self.num_resonances*2][:,None]
-        Vh=gamma_elements[self.num_resonances*2:self.num_resonances*3]
+        Vh=gamma_elements[self.num_resonances*2:self.num_resonances*3][None,:]
         gamma_matrix[:,1:]=U@Vh
         return(gamma_matrix)
     
@@ -24,70 +25,61 @@ class Gamma_SVD(basic.Fundamental):
         test_spin_group = deepcopy(self.spin_group)
         test_spin_group.update_gamma_matrix(gamma_matrix)
         
-        total_error=np.zeros(len(self.energy_grid))
-        
-        partial_error=np.zeros(len(total_error))
-        for idc in range(0,len(test_spin_group.channels)):
-            error=self.spin_group.channels[idc].cross_section-test_spin_group.channels[idc].cross_section
-            partial_error+=error
-        partial_error=np.power(partial_error,2)
-        total_error+=partial_error
-        
-        partial_error=np.zeros(len(total_error))
-        for idc in range(1,len(test_spin_group.channels)):
-            error=self.spin_group.channels[idc].cross_section-test_spin_group.channels[idc].cross_section
-            partial_error+=error
-        partial_error=np.power(partial_error,2)
-        total_error+=partial_error
-        
-        total_error=np.sum(total_error)
+        errors=np.zeros((self.num_channels,len(self.energy_grid)))
+        for idx in range(self.num_channels):
+            errors[idx,:]=self.spin_group.channels[idx].cross_section-test_spin_group.channels[idx].cross_section
+
+        total_error=np.sum(np.power(np.sum(errors[1:,:],0),2))+np.sum(np.power(np.sum(errors,0),2))
+
         return(total_error)
     
     def derivate(self,gamma_elements:np.array)->np.array:
-        def evaluator_derivative(test_spin_group,gamma_der):
+        def evaluator_partial_der(test_spin_group,gamma_der):
                     U_der=self.derivative_of_U_matrix(test_spin_group,gamma_der)
-                    channel_ders=[self.derivative_of_elastic_channel(test_spin_group,U_der,idx)]
+
+                    channel_ders=np.zeros((self.num_channels,len(self.energy_grid)))
+                    channel_ders[0,:]=self.derivative_of_elastic_channel(test_spin_group,U_der)
                     for idx in range(1,len(test_spin_group.channels)):
-                        channel_ders.append(self.derivative_of_capture_channel(test_spin_group,U_der,idx))
-                    SE_der=np.zeros(len(self.energy_grid))
-                    der_set=np.zeros(len(SE_der))
-                    err_set=np.zeros(len(SE_der))
-                    for idx in range(0,len(channel_ders)):
-                        der_set+=channel_ders[idx]
-                        err_set+=self.spin_group.channels[idx].cross_section-test_spin_group.channels[idx].cross_section
-                    SE_der+=-1*2*der_set*err_set
-                    der_set=np.zeros(len(SE_der))
-                    err_set=np.zeros(len(SE_der))
-                    for idx in range(1,len(channel_ders)):
-                        der_set+=channel_ders[idx]
-                        err_set+=self.spin_group.channels[idx].cross_section-test_spin_group.channels[idx].cross_section
-                    SE_der+=-1*2*der_set*err_set
-                    return(np.sum(SE_der))
+                        channel_ders[idx,:]=self.derivative_of_capture_channel(test_spin_group,U_der,idx)
+
+                    channel_errors=np.zeros((self.num_channels,len(self.energy_grid)))
+                    for idx in range(self.num_channels):
+                        channel_errors[idx,:]=self.spin_group.channels[idx].cross_section-test_spin_group.channels[idx].cross_section
+                    
+                    partial=np.sum(-2*np.sum(channel_errors[1:,:],0)*np.sum(channel_errors[1:,:],0)-2*np.sum(channel_errors,0)*np.sum(channel_errors,0))
+                    
+                    return(partial)
+        
         gamma_matrix=self.reshape(gamma_elements)
         test_spin_group = deepcopy(self.spin_group)
         test_spin_group.update_gamma_matrix(gamma_matrix)
 
-        derivative=np.zeros(self.num_resonances*3)
+        gradient=np.zeros(self.num_resonances*3)
+
         for idx in range(self.num_resonances):
             gamma_der=np.zeros((self.num_resonances,self.num_channels),float)
             gamma_der[idx,0]=1
-            derivative[idx]=evaluator_derivative(test_spin_group,gamma_der)
+            gradient[idx]=evaluator_partial_der(test_spin_group,gamma_der)
+
         for idx in range(self.num_resonances,self.num_resonances*2):
             gamma_der=np.zeros((self.num_resonances,self.num_channels),float)
             U=np.zeros(self.num_resonances)
-            U[idx]=1
-            U=U[:,None%self.num_resonances]
-            Vh=gamma_elements[self.num_resonances*2:]
+            U[idx%self.num_resonances]=1
+            U=U[:,None]
+            Vh=gamma_elements[self.num_resonances*2:][None,:]
             gamma_der[:,1:]=U@Vh
-            derivative[idx]=evaluator_derivative(test_spin_group,gamma_der)
+            gradient[idx]=evaluator_partial_der(test_spin_group,gamma_der)
+
         for idx in range(self.num_resonances*2,self.num_resonances*3):
             gamma_der=np.zeros((self.num_resonances,self.num_channels),float)
             U=gamma_elements[self.num_resonances:self.num_resonances*2][:,None]
             Vh=np.zeros(self.num_resonances)
             Vh[idx%self.num_resonances]=1
+            Vh=Vh[None,:]
             gamma_der[:,1:]=U@Vh
-            derivative[idx]=evaluator_derivative(test_spin_group,gamma_der)
-        return(derivative)
+            gradient[idx]=evaluator_partial_der(test_spin_group,gamma_der)
+
+        return(gradient)
 
 
 

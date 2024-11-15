@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os 
 print(os.getcwd())
-from models import gamma_SVD_model
+from Approximations.models import gamma_SVD_model
 # matrix=np.zeros((5,4))
 # for idr in range(matrix.shape[0]):
 #     for idc in range(matrix.shape[1]):
@@ -323,4 +323,11 @@ from models import gamma_SVD_model
 # print(A)
 # print(A.nonzero())
 
-problem=gamma_SVD_model.Gamma_SVD()
+# problem=gamma_SVD_model.Gamma_SVD()
+
+a=np.array([1,2])
+b=a[:,None]
+c=a[None,:]
+print(b)
+print(c)
+print(b@c)
