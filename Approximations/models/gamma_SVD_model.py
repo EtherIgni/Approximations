@@ -3,25 +3,27 @@ from copy import deepcopy
 
 from Approximations.models import basic
 
+def reshape(gamma_elements:np.array)->np.array:
+        num_resonances=int(gamma_elements.size/3)
+        num_channels=num_resonances+1
+
+        gamma_matrix=np.zeros((num_resonances,num_channels),float)
+        gamma_matrix[:,0]=gamma_elements[:num_resonances]
+        U=gamma_elements[num_resonances:num_resonances*2][:,None]
+        Vh=gamma_elements[num_resonances*2:num_resonances*3][None,:]
+        gamma_matrix[:,1:]=U@Vh
+        return(gamma_matrix)
+
 class Gamma_SVD(basic.Fundamental):
     def __init__(self, *args, **kwargs):
         super(Gamma_SVD, self).__init__(*args, **kwargs)
         self.init_guess_full={}
     
-
-
-    def reshape(self,gamma_elements:np.array)->np.array:
+    def evaluate(self,gamma_elements:np.array)->float:
         assert not(gamma_elements.size<3*self.num_resonances), "Not Enough gamma elements to derivate"
         assert not(gamma_elements.size>3*self.num_resonances), "Too many gamma elements to derivate"
-        gamma_matrix=np.zeros((self.num_resonances,self.num_channels),float)
-        gamma_matrix[:,0]=gamma_elements[:self.num_resonances]
-        U=gamma_elements[self.num_resonances:self.num_resonances*2][:,None]
-        Vh=gamma_elements[self.num_resonances*2:self.num_resonances*3][None,:]
-        gamma_matrix[:,1:]=U@Vh
-        return(gamma_matrix)
-    
-    def evaluate(self,gamma_elements:np.array)->float:
-        gamma_matrix=self.reshape(gamma_elements)
+
+        gamma_matrix=reshape(gamma_elements)
         test_spin_group = deepcopy(self.spin_group)
         test_spin_group.update_gamma_matrix(gamma_matrix)
         
@@ -49,8 +51,10 @@ class Gamma_SVD(basic.Fundamental):
                     partial=-np.sum(2*np.sum(channel_errors[1:,:],0)*np.sum(channel_ders[1:,:],0))-np.sum(2*np.sum(channel_errors,0)*np.sum(channel_ders,0))
                     
                     return(partial)
-        
-        gamma_matrix=self.reshape(gamma_elements)
+        assert not(gamma_elements.size<3*self.num_resonances), "Not Enough gamma elements to derivate"
+        assert not(gamma_elements.size>3*self.num_resonances), "Too many gamma elements to derivate"
+
+        gamma_matrix=reshape(gamma_elements)
         test_spin_group = deepcopy(self.spin_group)
         test_spin_group.update_gamma_matrix(gamma_matrix)
 

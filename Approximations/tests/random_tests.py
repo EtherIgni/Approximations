@@ -10,3 +10,5 @@ def test_eval(x):
 
 print(test_eval(np.array([2,2])))
 print(numeric_evaluators.gradient(np.array([2,2],float),test_eval,0.0000000001))
+
+print("a b ".split(" ")[:-1])
