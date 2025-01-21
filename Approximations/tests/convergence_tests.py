@@ -19,14 +19,14 @@ energy_grid_buffer=20 #ev
 energy_grid_size=1001
 
 problem=generic_model_gen.create_leveled_model(separation_energy,
-                                                        resonance_distance,
-                                                        resonance_avg_separation,
-                                                        gamma_variance,
-                                                        neutron_variance,
-                                                        excited_states,
-                                                        energy_grid_buffer,
-                                                        energy_grid_size,
-                                                        reich_moore_model.Reich_Moore if mode==1 else gamma_SVD_model.Gamma_SVD)
+                                               resonance_distance,
+                                               resonance_avg_separation,
+                                               gamma_variance,
+                                               neutron_variance,
+                                               excited_states,
+                                               energy_grid_buffer,
+                                               energy_grid_size,
+                                               reich_moore_model.Reich_Moore if mode==1 else gamma_SVD_model.Gamma_SVD)
 if(mode==1):
     initial_values=initial_estimates.reich_moore_guess(problem.get_gamma_matrix())
 else:

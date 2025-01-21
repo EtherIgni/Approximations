@@ -1,4 +1,4 @@
-from rmatrix.channels.abstract_channel import AbstractChannel
+from Approximations.rmatrix.channels.abstract_channel import AbstractChannel
 import numpy as np 
 
 class CaptureChannel(AbstractChannel):
