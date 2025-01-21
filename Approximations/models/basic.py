@@ -1,7 +1,10 @@
 import numpy as np
 from copy import deepcopy
 
-from rmatrix import Particle, ElasticChannel, CaptureChannel, SpinGroup
+from Approximations.rmatrix.base.particles import Particle
+from Approximations.rmatrix.channels.elastic_channel import ElasticChannel
+from Approximations.rmatrix.channels.capture_channel import CaptureChannel
+from Approximations.rmatrix.spin_group import SpinGroup
 
 class Fundamental():
     def __init__(self,num_channels,num_resonances) -> None:
@@ -71,11 +74,11 @@ class Fundamental():
         return(self.res_energies)
     
     def establish_spin_group(self)->None:
-        assert not(self.res_energies==[]), "Resonance energies not set."
-        assert not(self.elastic_channel==[]), "Elastic channel not set."
+        assert len(self.res_energies)>0, "Resonance energies not set."
+        assert not(self.elastic_channel==None), "Elastic channel not set."
         assert not(len(self.capture_channels)<self.num_resonances), "Not enough capture channels set."
         assert not(len(self.capture_channels)>self.num_resonances), "too many capture channels set."
-        assert not(self.energy_grid==[]), "Energy grid not set."
+        assert len(self.energy_grid)>0, "Energy grid not set."
         self.spin_group=SpinGroup(self.res_energies, self.elastic_channel, self.capture_channels,self.energy_grid)
         self.spin_group.calc_cross_section()
     def get_spin_group(self)->SpinGroup:

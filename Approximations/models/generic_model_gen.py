@@ -1,6 +1,6 @@
 import numpy as np
 
-from rmatrix import Particle
+from Approximations.rmatrix.base.particles import Particle
 from Approximations.tools import distributions
 
 def create_leveled_model(separation_energy,

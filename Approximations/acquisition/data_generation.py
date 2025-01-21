@@ -1,6 +1,6 @@
-batch_id=3
+batch_id=4
 number_attempts=10000
-mode=2 #1:Reich-Moore, 2:gamma SVD
+mode=1 #1:Reich-Moore, 2:gamma SVD
 
 separation_energy=float(7.5767E6) #ev
 resonance_distance=600 #ev
@@ -31,8 +31,11 @@ file_name=["null","rm","svd"]
 try:
     f = open("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", "r")
     lines = f.readlines()
-    last_entry=lines[-1]
-    run_id=int(last_entry[0:last_entry.find(" ")])+1
+    if(len(lines)>0):
+        last_entry=lines[-1]
+        run_id=int(last_entry[0:last_entry.find(" ")])+1
+    else:
+        run_id=1
 except:
     os.mkdir("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id))
     open("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", 'w')
@@ -46,14 +49,14 @@ for attempt in range(1,number_attempts):
     failure_text="Passed"
     try:
         problem=generic_model_gen.create_leveled_model(separation_energy,
-                                                       resonance_distance,
-                                                       resonance_avg_separation,
-                                                       gamma_variance,
-                                                       neutron_variance,
-                                                       excited_states,
-                                                       energy_grid_buffer,
-                                                       energy_grid_size,
-                                                       reich_moore_model.Reich_Moore if mode==1 else gamma_SVD_model.Gamma_SVD)
+                                                        resonance_distance,
+                                                        resonance_avg_separation,
+                                                        gamma_variance,
+                                                        neutron_variance,
+                                                        excited_states,
+                                                        energy_grid_buffer,
+                                                        energy_grid_size,
+                                                        reich_moore_model.Reich_Moore if mode==1 else gamma_SVD_model.Gamma_SVD)
         num_levels=len(excited_states)
     except:
         mins,secs=divmod(int(time.time()-Start_time),60)

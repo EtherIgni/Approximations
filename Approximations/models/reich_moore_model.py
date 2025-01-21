@@ -74,44 +74,53 @@ class Reich_Moore(basic.Fundamental):
     
     
 
-    def calc_hessian_and_gradient(self,gamma_matrix,iterable_mapping):
+    def calc_hessian_and_gradient(self,gamma_vector):
         data_types=[float,complex]
         energy_length=self.energy_grid.size
-        gamma_shape=gamma_matrix.shape
-        num_independent=iterable_mapping.shape[0]
-        
+        gamma_shape=self.get_gamma_matrix().shape
+        num_levels=gamma_shape[0]
+        num_channels=gamma_shape[1]
+        gamma_matrix=reshape(gamma_vector)
+        num_independent=len(gamma_vector)
+
+
+        #Creating a copy of the spin model to calculate values at the current position
         test_spin_group=deepcopy(self.spin_group)
         test_spin_group.update_gamma_matrix(gamma_matrix)
+
+        #Calculating current element values
         L=self.spin_group.L_matrix
         P=self.spin_group.P_half
         omega=self.spin_group.omega_matrix
         A_inv=self.spin_group.A_matrix
         U_matrix=self.spin_group.U_matrix
-        xs_fit=np.zeros((gamma_shape[1],energy_length),data_types[0])
-        for i in range(gamma_shape[1]):
+        xs_fit=np.zeros((num_channels,energy_length),data_types[0])
+        for i in range(num_channels):
             xs_fit[i]=test_spin_group.channels[i].cross_section
-        xs_true=np.zeros((gamma_shape[1],energy_length),data_types[0])
-        for i in range(gamma_shape[1]):
+        xs_true=np.zeros((num_channels,energy_length),data_types[0])
+        for i in range(num_channels):
             xs_true[i]=self.spin_group.channels[i].cross_section
         
-        gamma_gradient=np.zeros((6,2,3),data_types[0])
-        for i in range(num_independent):
-            gamma_gradient[i,iterable_mapping[i,0],iterable_mapping[i,1]]=1
+        #Defines and sets up the gradients for the elements of the gamma matrix
+        gamma_gradient=np.zeros((num_independent,num_levels,num_channels),data_types[0])
+        for i in range(num_levels):
+            gamma_gradient[i,i,0]=1
+        for j in range(num_channels-1):
+            gamma_gradient[num_levels+j,j,j+1]=1
         
-        
-        A_gradient=np.zeros((num_independent,energy_length,gamma_shape[0],gamma_shape[0]),data_types[1])
+
+        #Does work for the A Element
+        A_gradient=np.zeros((num_independent,energy_length,num_levels,num_levels),data_types[1])
         for i in range(num_independent):
             A_gradient[i]=-gamma_gradient[i]@L@gamma_matrix.T-gamma_matrix@L@gamma_gradient[i].T
         
-        A_hessian=np.zeros((num_independent,num_independent,energy_length,gamma_shape[0],gamma_shape[0]),data_types[1])
+        A_hessian=np.zeros((num_independent,num_independent,energy_length,num_levels,num_levels),data_types[1])
         for i in range(num_independent):
             for j in range(num_independent):
-                if(iterable_mapping[i,1]==iterable_mapping[j,1]):
-                    A_hessian[i,j]=-gamma_gradient[i]@L@gamma_gradient[j].T-gamma_gradient[j]@L@gamma_gradient[i].T
-                else:
-                    A_hessian[i,j]=0
+                A_hessian[i,j]=-gamma_gradient[i]@L@gamma_gradient[j].T-gamma_gradient[j]@L@gamma_gradient[i].T
 
 
+        #Does work for the A Inverse Element
         A_inv_gradient=np.zeros((num_independent,energy_length,gamma_shape[0],gamma_shape[0]),data_types[1])
         for i in range(num_independent):
             A_inv_gradient[i]=-A_inv@A_gradient[i]@A_inv
@@ -122,6 +131,7 @@ class Reich_Moore(basic.Fundamental):
                 A_inv_hessian[i,j]=A_inv@A_gradient[i]@A_inv@A_gradient[j]@A_inv-A_inv@A_hessian[i,j]@A_inv+A_inv@A_gradient[j]@A_inv@A_gradient[i]@A_inv
 
 
+        #Does work for the U Element
         U_gradient=np.zeros((num_independent,energy_length,gamma_shape[1],gamma_shape[1]),data_types[1])
         for i in range(num_independent):
             U_gradient[i]=2j*omega@P@(gamma_gradient[i].T@A_inv@gamma_matrix+
@@ -140,6 +150,7 @@ class Reich_Moore(basic.Fundamental):
                 U_hessian[i,j]=2j*omega@P@interstage@P@omega
 
 
+        #Does work for the cross section
         xs_gradient=np.zeros((num_independent,gamma_shape[1],energy_length),data_types[0])
         for i in range(num_independent):
             xs_gradient[i,0]=(10**24 * np.pi/self.spin_group.k_sq)*(-2*U_gradient[i,:,0,0].real+(np.conjugate(U_gradient[i,:,0,0])*U_matrix[:,0,0]+np.conjugate(U_matrix[:,0,0])*U_gradient[i,:,0,0]).real)
@@ -161,6 +172,7 @@ class Reich_Moore(basic.Fundamental):
                                                                              np.conjugate(U_matrix[:,0,k])      * U_hessian[i,j,:,0,k]).real
 
 
+        #Does work for the Error Term
         error_gradient=np.zeros(num_independent,data_types[0])
         for i in range(num_independent):
             error_gradient[i]=np.sum(2*np.sum(xs_true-xs_fit,0)*np.sum(-xs_gradient[i],0)+2*np.sum(xs_true[1:]-xs_fit[1:],0)*np.sum(-xs_gradient[i,1:],0))
