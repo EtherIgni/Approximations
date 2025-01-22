@@ -28,31 +28,50 @@ problem=generic_model_gen.create_leveled_model(separation_energy,
                                                energy_grid_size,
                                                reich_moore_model.Reich_Moore if mode==1 else gamma_SVD_model.Gamma_SVD)
 if(mode==1):
-    initial_values=initial_estimates.reich_moore_guess(problem.get_gamma_matrix())
+    vector=initial_estimates.reich_moore_guess(problem.get_gamma_matrix())
 else:
-    initial_values=initial_estimates.gamma_SVD_approx(problem.get_gamma_matrix())
-iterable=np.ones(initial_values.shape)
+    vector=initial_estimates.gamma_SVD_approx(problem.get_gamma_matrix())
+lm_multiplier=1.5
+lm_min=float(10e-8)
+lm_max=float(10e8)
+lm_constant=lm_max
+improvement_threshold=0.1
+LMA_vector,iteration=fitting.LMA(vector,
+                             problem.evaluate,
+                             problem.calc_hessian_and_gradient,
+                             float(10e6),
+                             1.5,
+                             float(10e-8),
+                             float(10e8),
+                             0.1,
+                             1000,
+                             0)
+print(iteration)
+print(problem.evaluate(vector))
+print(problem.evaluate(LMA_vector))
+iterable=np.ones(vector.shape)
 gradient_step=float(1000)
-best_fit_vector,iterations=fitting.gradient_descent_half_step(initial_values,
+best_fit_vector,iterations=fitting.gradient_descent_half_step(vector,
                                                               iterable,
                                                               problem.derivate,
                                                               gradient_step,
                                                               problem.evaluate,
                                                               float(1E-6),
-                                                              [25,100],
+                                                              [100,100],
                                                               5,
                                                               0,
                                                               0)
-previous=problem.evaluate(best_fit_vector)
-gradient,hessian=problem.calc_hessian_and_gradient(best_fit_vector)
-print(previous)
-print(np.sqrt(np.sum(np.power(gradient,2))))
-for i in range(25):
-    gradient,hessian=problem.calc_hessian_and_gradient(best_fit_vector)
-    best_fit_vector=best_fit_vector-np.linalg.inv(hessian)@gradient
 print(problem.evaluate(best_fit_vector))
-gradient,hessian=problem.calc_hessian_and_gradient(best_fit_vector)
-print(np.sqrt(np.sum(np.power(gradient,2))))
+# previous=problem.evaluate(best_fit_vector)
+# gradient,hessian=problem.calc_hessian_and_gradient(best_fit_vector)
+# print(previous)
+# print(np.sqrt(np.sum(np.power(gradient,2))))
+# for i in range(25):
+#     gradient,hessian=problem.calc_hessian_and_gradient(best_fit_vector)
+#     best_fit_vector=best_fit_vector-np.linalg.inv(hessian)@gradient
+# print(problem.evaluate(best_fit_vector))
+# gradient,hessian=problem.calc_hessian_and_gradient(best_fit_vector)
+# print(np.sqrt(np.sum(np.power(gradient,2))))
 
 
 

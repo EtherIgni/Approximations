@@ -335,88 +335,80 @@ def LMA_Type_1(initial_values,energy_length,iterables,jacobian_func,error_func,l
     if debug>0: print("")
     return(new_values)
 
-def LMA(initial_values,iterable,derivative,max_gradient_step,evaluator,tolerance,max_num_iterations,step_count_lim,convergance_type,debug,previous_settings=None):
-    new_values=initial_values
-    previous_result=evaluator(new_values)
-    converged=False
-    if debug>2: num_true_steps=0
-    con_step_down=0
-    con_no_step=0
-    if(not(previous_settings==None)):
-        max_gradient_step=previous_settings[0]
-        con_step_down=previous_settings[1]
-        con_no_step=previous_settings[2]
-    for k in range(max_num_iterations[0]):
-        gradient=derivative(new_values)*iterable
-        if debug>3:
-            x=np.linspace(0,max_gradient_step,1000)
-            y=np.empty(x.shape)
-            for idx,i in enumerate(x):
-                test_matrix=new_values-gradient*i
-                y[idx]=evaluator(test_matrix)
-
-            plt.plot(x,y)
-            plt.xscale("linear")
-            plt.show()
-        if debug>2: print("Iteration:",k+1)
-        if debug>2: print("Gradient\n",gradient)
-        if debug>2: print("Gradient Magnitude:",np.sqrt(np.sum(np.power(gradient,2))))
-        current_step_size=max_gradient_step
-        if debug>2: print("")
-        for l in range(max_num_iterations[1]):
-            if debug>2: print("Step Count:",l+1)
-            if debug>2: print("Step Size:",current_step_size)
-            test_matrix=new_values-gradient*current_step_size
-            if debug>2: print("New Position\n",test_matrix)
-            current_result=evaluator(test_matrix)
-            if debug>2: print("Result to Beat:",previous_result)
-            if debug>2: print("Step Result:",current_result)
-            if(current_result<previous_result):
-                new_values=test_matrix
-                if debug>2: num_true_steps+=1
-                if debug>2: print("Step")
-                if debug>2: print("")
+def LMA(initial_vector,
+        evaluator,
+        calculator,
+        initial_priority,
+        priority_multiplier,
+        priority_min,
+        priority_max,
+        improvement_threshold,
+        iteration_limit,
+        debug,
+        previous_settings=None):
+    #Initialization
+    v_length=len(initial_vector)
+    priority=initial_priority
+    vector=initial_vector
+    evaluation=evaluator(vector)
+    #LM Loop
+    for iteration in range(iteration_limit):
+        #Calculates Values
+        gradient,hessian=calculator(vector)
+        #Gets Step Size
+        difference=np.linalg.inv(hessian+priority*np.eye(v_length))@gradient
+        #Tests a step and evaluates it
+        new_vector=vector-difference
+        new_evaluation=evaluator(new_vector)
+        error_change=evaluation-new_evaluation
+        metric=error_change/np.abs(difference.T@(priority*difference+gradient))
+        #Updates loop based on evaluation
+        if(metric>improvement_threshold):
+            priority=np.max([priority/priority_multiplier,priority_min])
+            vector=new_vector
+            evaluation=new_evaluation
+        elif(priority):
+            #Exits if no further improvement can be made in this format
+            if(priority==priority_max):
                 break
-            current_step_size=current_step_size/2
-            if debug>2: print("")
-        else:
-            if debug>0: print("Failed to step Before Failsafe Triggered")
-            break
-        if debug>2: print("Final Position:\n",new_values)
-        if debug>2: print("")
-        if debug>2: print("-------------------------------------------------------------------------------------------------------------------------------------------------")
-        if debug==2: print(k+1,l+1)
-        if debug>1: print("")
-        if(current_step_size<max_gradient_step):
-            con_step_down+=1
-            con_no_step=0
-        else:
-            con_no_step+=1
-            con_step_down=0
-        if(con_no_step==step_count_lim):
-            max_gradient_step=max_gradient_step*2
-            con_no_step=0
-        if(con_step_down==step_count_lim):
-            max_gradient_step=max_gradient_step/2
-            con_step_down=0
-        if((np.sqrt(np.sum(np.power(gradient,2)))<tolerance)and(convergance_type==0)):
-            converged=True
-            break
-        if((current_result-previous_result<tolerance)and(convergance_type==1)):
-            converged=True
-            break
-        previous_result=current_result
-    if converged:
-        if debug>0: print(f"Converged after {k+1} Iterations.")
-    else:
-        if debug>0: print("Did Not Converge.")
-    if debug>0: print("")
-    if debug>2: print("Number of Steps:",num_true_steps)
-    if debug>2: print("")
-    if debug>2: print("=================================================================================================================================================")
-    if debug==2: print("=============================")
-    if debug>1: print("")
-    if(previous_settings==None):
-        return(new_values,k+1)
-    else:
-        return(new_values,[max_gradient_step,con_step_down,con_no_step])
+            priority=np.min([priority*priority_multiplier,priority_max])
+    return(vector,iteration)
+
+def modified_LMA(initial_vector,
+                 evaluator,
+                 calculator,
+                 initial_priority,
+                 priority_multiplier,
+                 priority_min,
+                 priority_max,
+                 improvement_threshold,
+                 iteration_limit,
+                 debug,
+                 previous_settings=None):
+    #Initialization
+    v_length=len(initial_vector)
+    priority=initial_priority
+    vector=initial_vector
+    evaluation=evaluator(vector)
+    #LM Loop
+    for iteration in range(iteration_limit):
+        #Calculates Values
+        gradient,hessian=calculator(vector)
+        #Gets Step Size
+        difference=np.linalg.inv(hessian+priority*np.eye(v_length))@gradient
+        #Tests a step and evaluates it
+        new_vector=vector-difference
+        new_evaluation=evaluator(new_vector)
+        error_change=evaluation-new_evaluation
+        metric=error_change/np.abs(difference.T@(priority*difference+gradient))
+        #Updates loop based on evaluation
+        if(metric>improvement_threshold):
+            priority=np.max([priority/priority_multiplier,priority_min])
+            vector=new_vector
+            evaluation=new_evaluation
+        elif(priority):
+            #Exits if no further improvement can be made in this format
+            if(priority==priority_max):
+                break
+            priority=np.min([priority*priority_multiplier,priority_max])
+    return(vector,iteration)
