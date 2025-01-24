@@ -1,5 +1,5 @@
-batch_id=1
-mode=2 #1:Reich-Moore, 2:gamma SVD
+batch_id=2
+mode=1 #1:Reich-Moore, 2:gamma SVD
 cut_off_value=100
 show_ignored_values=True
 show_failed_values=False

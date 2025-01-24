@@ -42,7 +42,7 @@ LMA_vector,iteration=fitting.LMA(vector,
                              float(10e6),
                              1.5,
                              float(10e-8),
-                             float(10e8),
+                             float(10e16),
                              0.1,
                              1000,
                              0)

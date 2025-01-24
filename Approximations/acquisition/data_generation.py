@@ -1,4 +1,4 @@
-batch_id=4
+batch_id=2
 number_attempts=10000
 mode=1 #1:Reich-Moore, 2:gamma SVD
 
@@ -90,22 +90,25 @@ for attempt in range(1,number_attempts):
         continue
     try:
         if(mode==1):
-            initial_values=initial_estimates.reich_moore_guess(problem.get_gamma_matrix())
+            initial_vector=initial_estimates.reich_moore_guess(problem.get_gamma_matrix())
         else:
-            initial_values=initial_estimates.gamma_SVD_approx(problem.get_gamma_matrix())
-        iterable=np.ones(initial_values.shape)
-        gradient_step=float(1000)
-        best_fit_matrix,iterations=fitting.gradient_descent_half_step(initial_values,
-                                                                      iterable,
-                                                                      problem.derivate,
-                                                                      gradient_step,
-                                                                      problem.evaluate,
-                                                                      float(1E-6),
-                                                                      [100,100],
-                                                                      5,
-                                                                      0,
-                                                                      0)
-        result=problem.evaluate(best_fit_matrix)
+            initial_vector=initial_estimates.gamma_SVD_approx(problem.get_gamma_matrix())
+        lm_multiplier=1.5
+        lm_min=float(10e-8)
+        lm_max=float(10e8)
+        lm_constant=lm_max
+        improvement_threshold=0.1
+        best_fit_vector,iterations=fitting.LMA(initial_vector,
+                                    problem.evaluate,
+                                    problem.calc_hessian_and_gradient,
+                                    float(10e6),
+                                    1.5,
+                                    float(10e-8),
+                                    float(10e16),
+                                    0.1,
+                                    1000,
+                                    0)
+        result=problem.evaluate(best_fit_vector)
     except Exception as e:
         try:
             the_type, the_value, the_traceback = sys.exc_info()
@@ -129,10 +132,10 @@ for attempt in range(1,number_attempts):
     try:
         with open("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/successful run data.txt", "a") as text_file:
             text=str(run_id)+" "+str(attempt)+" | "
-            for val in initial_values:
+            for val in initial_vector:
                 text=text+str(val)+" "
             text=text+"| "
-            for val in best_fit_matrix:
+            for val in best_fit_vector:
                 text=text+str(val)+" "
             text=text+"| "+str(result)+" | "+str(iterations)+"\n"
             text_file.write(text)
