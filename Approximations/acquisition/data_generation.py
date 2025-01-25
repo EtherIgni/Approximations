@@ -1,24 +1,3 @@
-batch_id=2
-number_attempts=10000
-mode=1 #1:Reich-Moore, 2:gamma SVD
-
-separation_energy=float(7.5767E6) #ev
-resonance_distance=600 #ev
-resonance_avg_separation=8 #ev
-gamma_variance=float(32E-3) #ev
-neutron_variance=float(452.5E-3) #ev
-excited_states=[0, float(6.237E3)]#,float(136.269E3),float(152.320E3),float(301.622E3),float(337.54E3)] #ev
-energy_grid_buffer=20 #ev
-energy_grid_size=1001
-
-
-
-
-
-
-
-import numpy as np
-import matplotlib.pyplot as plt
 import numpy as np
 import time
 import sys, os
@@ -27,123 +6,144 @@ from Approximations.tools  import initial_estimates,fitting
 from Approximations.models import reich_moore_model,gamma_SVD_model,generic_model_gen
 
 
-file_name=["null","rm","svd"]
-try:
-    f = open("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", "r")
-    lines = f.readlines()
-    if(len(lines)>0):
-        last_entry=lines[-1]
-        run_id=int(last_entry[0:last_entry.find(" ")])+1
-    else:
-        run_id=1
-except:
-    os.mkdir("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id))
-    open("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", 'w')
-    open("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/successful run data.txt", 'w')
-    open("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", 'w')
-    run_id=1
+def run_acquisition(batch_id,
+                    number_attempts,
+                    mode,
+                    model_parameters):
 
-print("Running")
-Start_time=time.time()
-for attempt in range(1,number_attempts):
-    failure_text="Passed"
+    file_name=["null","rm","svd"]
+    file_path=os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     try:
-        problem=generic_model_gen.create_leveled_model(separation_energy,
-                                                        resonance_distance,
-                                                        resonance_avg_separation,
-                                                        gamma_variance,
-                                                        neutron_variance,
-                                                        excited_states,
-                                                        energy_grid_buffer,
-                                                        energy_grid_size,
-                                                        reich_moore_model.Reich_Moore if mode==1 else gamma_SVD_model.Gamma_SVD)
-        num_levels=len(excited_states)
-    except:
-        mins,secs=divmod(int(time.time()-Start_time),60)
-        hrs,mins=divmod(mins,60)
-        print(str(run_id)+"|"+str(attempt),"No Model Generation",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
-        continue
-    try:
-        with open("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", "a") as text_file:
-            resonance_energies=problem.get_resonance_energies()
-            true_gamma_matrix=problem.get_gamma_matrix()
-            text=str(run_id)+" "+str(attempt)+" | "
-            for idx in range(1,resonance_energies.size):
-                text=text+str(resonance_energies[idx]-resonance_energies[idx-1])+" "
-            text=text+"| "
-            for excitation in excited_states:
-                text=text+str(problem.get_elastic_channel().calc_penetrability(separation_energy-excitation))+" "
-            text=text+"| "
-            for level in range(num_levels):
-                for excitation in excited_states:
-                    text=text+str(problem.get_capture_channels()[level].calc_penetrability(separation_energy-excitation))+" "
-            text=text+"| "
-            for row in range(num_levels):
-                for col in range(num_levels+1):
-                    text=text+str(true_gamma_matrix[row,col])+" "
-            text=text[:-1]+"\n"
-            text_file.write(text)
-    except:
-        mins,secs=divmod(int(time.time()-Start_time),60)
-        hrs,mins=divmod(mins,60)
-        print(str(run_id)+"|"+str(attempt),"No Model Logging",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
-        continue
-    try:
-        if(mode==1):
-            initial_vector=initial_estimates.reich_moore_guess(problem.get_gamma_matrix())
+        f = open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", "r")
+        lines = f.readlines()
+        if(len(lines)>0):
+            last_entry=lines[-1]
+            run_id=int(last_entry[0:last_entry.find(" ")])+1
         else:
-            initial_vector=initial_estimates.gamma_SVD_approx(problem.get_gamma_matrix())
-        lm_multiplier=1.5
-        lm_min=float(10e-8)
-        lm_max=float(10e8)
-        lm_constant=lm_max
-        improvement_threshold=0.1
-        best_fit_vector,iterations=fitting.LMA(initial_vector,
-                                    problem.evaluate,
-                                    problem.calc_hessian_and_gradient,
-                                    float(10e6),
-                                    1.5,
-                                    float(10e-8),
-                                    float(10e16),
-                                    0.1,
-                                    1000,
-                                    0)
-        result=problem.evaluate(best_fit_vector)
-    except Exception as e:
+            run_id=1
+    except:
+        os.mkdir(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id))
+        open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", 'w')
+        open(file_path+"run data/"+file_name[mode]+"/batch "+str(batch_id)+"/successful run data.txt", 'w')
+        open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", 'w')
+        run_id=1
+
+    print("Running")
+    Start_time=time.time()
+    for attempt in range(1,number_attempts):
+        failure_text="Passed"
         try:
-            the_type, the_value, the_traceback = sys.exc_info()
-            with open("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", "a") as text_file:
-                text_file.write(str(run_id)+" "+str(attempt)+" "+str(the_value)+"\n")
+            problem=generic_model_gen.create_leveled_model(model_parameters["Separation Energy"],
+                                                           model_parameters["Resonance Distance"],
+                                                           model_parameters["Resonance Avg Separation"],
+                                                           model_parameters["Gamma Variance"],
+                                                           model_parameters["Neutron Variance"],
+                                                           model_parameters["Excited States"],
+                                                           model_parameters["Energy Grid Buffer"],
+                                                           model_parameters["Energy Grid Size"],
+                                                           reich_moore_model.Reich_Moore if mode==1 else gamma_SVD_model.Gamma_SVD)
+            num_levels=len(model_parameters["Excited States"])
+        except:
             mins,secs=divmod(int(time.time()-Start_time),60)
             hrs,mins=divmod(mins,60)
-            print(str(run_id)+"|"+str(attempt),"Model Fit Failed",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
+            print(str(run_id)+"|"+str(attempt),"No Model Generation",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
+            continue
+        try:
+            with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", "a") as text_file:
+                resonance_energies=problem.get_resonance_energies()
+                true_gamma_matrix=problem.get_gamma_matrix()
+                text=str(run_id)+" "+str(attempt)+" | "
+                for idx in range(1,resonance_energies.size):
+                    text=text+str(resonance_energies[idx]-resonance_energies[idx-1])+" "
+                text=text+"| "
+                for excitation in model_parameters["Excited States"]:
+                    text=text+str(problem.get_elastic_channel().calc_penetrability(model_parameters["Separation Energy"]-excitation))+" "
+                text=text+"| "
+                for level in range(num_levels):
+                    for excitation in model_parameters["Excited States"]:
+                        text=text+str(problem.get_capture_channels()[level].calc_penetrability(model_parameters["Separation Energy"]-excitation))+" "
+                text=text+"| "
+                for row in range(num_levels):
+                    for col in range(num_levels+1):
+                        text=text+str(true_gamma_matrix[row,col])+" "
+                text=text[:-1]+"\n"
+                text_file.write(text)
         except:
+            mins,secs=divmod(int(time.time()-Start_time),60)
+            hrs,mins=divmod(mins,60)
+            print(str(run_id)+"|"+str(attempt),"No Model Logging",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
+            continue
+        try:
+            if(mode==1):
+                initial_vector=initial_estimates.reich_moore_guess(problem.get_gamma_matrix())
+            else:
+                initial_vector=initial_estimates.gamma_SVD_approx(problem.get_gamma_matrix())
+            lm_multiplier=1.5
+            lm_min=float(10e-8)
+            lm_max=float(10e8)
+            lm_constant=lm_max
+            improvement_threshold=0.1
+            best_fit_vector,iterations=fitting.LMA(initial_vector,
+                                        problem.evaluate,
+                                        problem.calc_hessian_and_gradient,
+                                        float(10e6),
+                                        1.5,
+                                        float(10e-8),
+                                        float(10e16),
+                                        0.1,
+                                        1000,
+                                        0)
+            result=problem.evaluate(best_fit_vector)
+        except Exception as e:
             try:
-                with open("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", "a") as text_file:
-                    text_file.write(str(run_id)+" "+str(attempt)+" Unresolvable Error\n")
+                the_type, the_value, the_traceback = sys.exc_info()
+                with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", "a") as text_file:
+                    text_file.write(str(run_id)+" "+str(attempt)+" "+str(the_value)+"\n")
                 mins,secs=divmod(int(time.time()-Start_time),60)
                 hrs,mins=divmod(mins,60)
                 print(str(run_id)+"|"+str(attempt),"Model Fit Failed",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
             except:
-                mins,secs=divmod(int(time.time()-Start_time),60)
-                hrs,mins=divmod(mins,60)
-                print(str(run_id)+"|"+str(attempt),"Weird Ahh Error",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
-        continue
-    try:
-        with open("Approximations/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/successful run data.txt", "a") as text_file:
-            text=str(run_id)+" "+str(attempt)+" | "
-            for val in initial_vector:
-                text=text+str(val)+" "
-            text=text+"| "
-            for val in best_fit_vector:
-                text=text+str(val)+" "
-            text=text+"| "+str(result)+" | "+str(iterations)+"\n"
-            text_file.write(text)
-        mins,secs=divmod(int(time.time()-Start_time),60)
-        hrs,mins=divmod(mins,60)
-        print(str(run_id)+"|"+str(attempt),"Passed",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
-    except:
-        mins,secs=divmod(int(time.time()-Start_time),60)
-        hrs,mins=divmod(mins,60)
-        print(str(run_id)+"|"+str(attempt),"No Model Fit Logging",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
-        
+                try:
+                    with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", "a") as text_file:
+                        text_file.write(str(run_id)+" "+str(attempt)+" Unresolvable Error\n")
+                    mins,secs=divmod(int(time.time()-Start_time),60)
+                    hrs,mins=divmod(mins,60)
+                    print(str(run_id)+"|"+str(attempt),"Model Fit Failed",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
+                except:
+                    mins,secs=divmod(int(time.time()-Start_time),60)
+                    hrs,mins=divmod(mins,60)
+                    print(str(run_id)+"|"+str(attempt),"Weird Ahh Error",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
+            continue
+        try:
+            with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/successful run data.txt", "a") as text_file:
+                text=str(run_id)+" "+str(attempt)+" | "
+                for val in initial_vector:
+                    text=text+str(val)+" "
+                text=text+"| "
+                for val in best_fit_vector:
+                    text=text+str(val)+" "
+                text=text+"| "+str(result)+" | "+str(iterations)+"\n"
+                text_file.write(text)
+            mins,secs=divmod(int(time.time()-Start_time),60)
+            hrs,mins=divmod(mins,60)
+            print(str(run_id)+"|"+str(attempt),"Passed",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
+        except:
+            mins,secs=divmod(int(time.time()-Start_time),60)
+            hrs,mins=divmod(mins,60)
+            print(str(run_id)+"|"+str(attempt),"No Model Fit Logging",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
+
+Full_state_list=np.array([0, float(6.237E3),float(136.269E3),float(152.320E3),float(301.622E3),float(337.54E3)]) #ev
+for meta in range(2,len(Full_state_list)+1):
+    model_parameters={"Separation Energy":float(7.5767E6), #ev
+                    "Resonance Distance":600, #ev
+                    "Resonance Avg Separation":8, #ev
+                    "Gamma Variance":float(32E-3), #ev
+                    "Neutron Variance":float(452.5E-3), #ev
+                    "Excited States":Full_state_list[0:meta],
+                    "Energy Grid Buffer":20, #ev
+                    "Energy Grid Size":1001}
+
+    run_acquisition(batch_id=meta+1,
+                    number_attempts=10000,
+                    mode=1,
+                    model_parameters=model_parameters)
