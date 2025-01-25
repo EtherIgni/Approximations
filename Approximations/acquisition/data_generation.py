@@ -23,9 +23,12 @@ def run_acquisition(batch_id,
             run_id=1
     except:
         os.mkdir(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id))
-        open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", 'w')
-        open(file_path+"run data/"+file_name[mode]+"/batch "+str(batch_id)+"/successful run data.txt", 'w')
-        open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", 'w')
+        with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", 'w') as file:
+            file.write("")
+        with open(file_path+"run data/"+file_name[mode]+"/batch "+str(batch_id)+"/successful run data.txt", 'w') as file:
+            file.write("")
+        with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", 'w') as file:
+            file.write("")
         run_id=1
 
     print("Running")
@@ -80,18 +83,19 @@ def run_acquisition(batch_id,
                 initial_vector=initial_estimates.gamma_SVD_approx(problem.get_gamma_matrix())
             lm_multiplier=1.5
             lm_min=float(10e-8)
-            lm_max=float(10e8)
-            lm_constant=lm_max
+            lm_max=float(10e16)
+            lm_constant=float(10e6)
             improvement_threshold=0.1
+            lm_depth=1000
             best_fit_vector,iterations=fitting.LMA(initial_vector,
                                         problem.evaluate,
                                         problem.calc_hessian_and_gradient,
-                                        float(10e6),
-                                        1.5,
-                                        float(10e-8),
-                                        float(10e16),
-                                        0.1,
-                                        1000,
+                                        lm_constant,
+                                        lm_multiplier,
+                                        lm_min,
+                                        lm_max,
+                                        improvement_threshold,
+                                        lm_depth,
                                         0)
             result=problem.evaluate(best_fit_vector)
         except Exception as e:
@@ -133,17 +137,17 @@ def run_acquisition(batch_id,
             print(str(run_id)+"|"+str(attempt),"No Model Fit Logging",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
 
 Full_state_list=np.array([0, float(6.237E3),float(136.269E3),float(152.320E3),float(301.622E3),float(337.54E3)]) #ev
-for meta in range(2,len(Full_state_list)+1):
+for meta in range(1,len(Full_state_list)):
     model_parameters={"Separation Energy":float(7.5767E6), #ev
                     "Resonance Distance":600, #ev
                     "Resonance Avg Separation":8, #ev
                     "Gamma Variance":float(32E-3), #ev
                     "Neutron Variance":float(452.5E-3), #ev
-                    "Excited States":Full_state_list[0:meta],
+                    "Excited States":Full_state_list[0:meta+1],
                     "Energy Grid Buffer":20, #ev
                     "Energy Grid Size":1001}
 
-    run_acquisition(batch_id=meta+1,
+    run_acquisition(batch_id=meta,
                     number_attempts=10000,
                     mode=1,
                     model_parameters=model_parameters)
