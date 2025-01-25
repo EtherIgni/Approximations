@@ -23,12 +23,9 @@ def run_acquisition(batch_id,
             run_id=1
     except:
         os.mkdir(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id))
-        with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", 'w') as file:
-            file.write("")
-        with open(file_path+"run data/"+file_name[mode]+"/batch "+str(batch_id)+"/successful run data.txt", 'w') as file:
-            file.write("")
-        with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", 'w') as file:
-            file.write("")
+        open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", 'w')
+        open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/successful run data.txt", 'w')
+        open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", 'w')
         run_id=1
 
     print("Running")
