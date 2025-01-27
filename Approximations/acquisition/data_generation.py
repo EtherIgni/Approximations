@@ -133,18 +133,32 @@ def run_acquisition(batch_id,
             hrs,mins=divmod(mins,60)
             print(str(run_id)+"|"+str(attempt),"No Model Fit Logging",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
 
-Full_state_list=np.array([0, float(6.237E3),float(136.269E3),float(152.320E3),float(301.622E3),float(337.54E3)]) #ev
-for meta in range(1,len(Full_state_list)):
-    model_parameters={"Separation Energy":float(7.5767E6), #ev
-                    "Resonance Distance":600, #ev
-                    "Resonance Avg Separation":8, #ev
-                    "Gamma Variance":float(32E-3), #ev
-                    "Neutron Variance":float(452.5E-3), #ev
-                    "Excited States":Full_state_list[0:meta+1],
-                    "Energy Grid Buffer":20, #ev
-                    "Energy Grid Size":1001}
 
-    run_acquisition(batch_id=meta,
-                    number_attempts=10000,
-                    mode=1,
-                    model_parameters=model_parameters)
+model_parameters_Ta_181={"compound Name":'181Ta',
+                         "N":181, ##Particles
+                         "Z":71, ##Protons
+                         "Separation Energy":float(7.5767E6), #ev
+                         "Resonance Distance":600, #ev
+                         "Resonance Avg Separation":8, #ev
+                         "Gamma Variance":float(32E-3), #ev
+                         "Neutron Variance":float(452.5E-3), #ev
+                         "Excited States":np.array([0, float(6.237E3),float(136.269E3),float(152.320E3),float(301.622E3),float(337.54E3)]), #ev
+                         "Energy Grid Buffer":20, #ev
+                         "Energy Grid Size":1001}
+
+model_parameters_Pb_208={"compound Name":'181Ta',
+                         "N":208, ##Particles
+                         "Z":82, ##Protons
+                         "Separation Energy":float(7.36787E6), #ev
+                         "Resonance Distance":2000, #ev 2E-6
+                         "Resonance Avg Separation":12E3, #ev
+                         "Gamma Variance":float(32E-3), #ev
+                         "Neutron Variance":float(452.5E-3), #ev
+                         "Excited States":np.array([0, float(2.614522E6),float(3.197711E6),float(3.475078E6),float(3.708451E6),float(3.919966E6)]), #ev
+                         "Energy Grid Buffer":20, #ev
+                         "Energy Grid Size":1001}
+
+run_acquisition(batch_id=1,
+                number_attempts=10000,
+                mode=1,
+                model_parameters=model_parameters_Pb_208)

@@ -3,15 +3,18 @@ import numpy as np
 from Approximations.rmatrix.base.particles import Particle
 from Approximations.tools import distributions
 
-def create_leveled_model(separation_energy,
-                           resonance_distance,
-                           resonance_avg_separation,
-                           gamma_variance,
-                           neutron_variance,
-                           excited_states,
-                           energy_grid_buffer,
-                           energy_grid_size,
-                           model_type):
+def create_leveled_model(compound_name,
+                         N,
+                         Z,
+                         separation_energy,
+                         resonance_distance,
+                         resonance_avg_separation,
+                         gamma_variance,
+                         neutron_variance,
+                         excited_states,
+                         energy_grid_buffer,
+                         energy_grid_size,
+                         model_type):
     number_levels=len(excited_states)
     model=model_type(len(excited_states)+1,len(excited_states))
 
@@ -19,8 +22,8 @@ def create_leveled_model(separation_energy,
 
     neutron = Particle('n',1,0)
     gamma = Particle('g',0,0)
-    target = Particle("181Ta",181,73)
-    compound = Particle("181Ta", 181,73, Sn=separation_energy)
+    target = Particle(compound_name,N,Z)
+    compound = Particle(compound_name, N,Z, Sn=separation_energy)
     model.set_incoming(neutron)
     model.set_outgoing(gamma)
     model.set_target(target)
