@@ -33,7 +33,10 @@ def run_acquisition(batch_id,
     for attempt in range(1,number_attempts):
         failure_text="Passed"
         try:
-            problem=generic_model_gen.create_leveled_model(model_parameters["Separation Energy"],
+            problem=generic_model_gen.create_leveled_model(model_parameters["compound Name"],
+                                                           model_parameters["N"],
+                                                           model_parameters["Z"],
+                                                           model_parameters["Separation Energy"],
                                                            model_parameters["Resonance Distance"],
                                                            model_parameters["Resonance Avg Separation"],
                                                            model_parameters["Gamma Variance"],
@@ -83,7 +86,7 @@ def run_acquisition(batch_id,
             lm_max=float(10e16)
             lm_constant=float(10e6)
             improvement_threshold=0.1
-            lm_depth=1000
+            lm_depth=200
             best_fit_vector,iterations=fitting.LMA(initial_vector,
                                         problem.evaluate,
                                         problem.calc_hessian_and_gradient,
@@ -154,7 +157,7 @@ model_parameters_Pb_208={"compound Name":'181Ta',
                          "Resonance Avg Separation":12E3, #ev
                          "Gamma Variance":float(32E-3), #ev
                          "Neutron Variance":float(452.5E-3), #ev
-                         "Excited States":np.array([0, float(2.614522E6),float(3.197711E6),float(3.475078E6),float(3.708451E6),float(3.919966E6)]), #ev
+                         "Excited States":np.array([0, float(2.614522E6)]),#float(3.197711E6),float(3.475078E6),float(3.708451E6),float(3.919966E6)]), #ev
                          "Energy Grid Buffer":20, #ev
                          "Energy Grid Size":1001}
 
