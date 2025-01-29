@@ -1,5 +1,5 @@
-batch_path="/home/aaron/Desktop/Ta-181 6 Levels 2"
-output_path="/home/aaron/Desktop/Ta-181 6 Levels 2"
+batch_path="/home/Aaron/Desktop/Pb-208 6 Levels"
+output_path="/home/Aaron/Desktop/Pb-208 6 Levels"
 mode=1 #1:Reich-Moore, 2:gamma SVD
 cut_off_value=1000
 show_ignored_values=True
@@ -132,7 +132,11 @@ for idx in range(model_run_ids.shape[0]):
 
 sort_indices=np.argsort(successful_results_data,0)
 successful_results_data=np.take_along_axis(successful_results_data, sort_indices, axis=0)
-cut_off_point=np.min((np.sqrt(successful_results_data.flatten())>cut_off_value).nonzero())
+unmatched_sets=(np.sqrt(successful_results_data.flatten())>cut_off_value).nonzero()
+if(len(unmatched_sets[0])==0):
+    cut_off_point=successful_results_data.size
+else:
+    cut_off_point=np.min((np.sqrt(successful_results_data.flatten())>cut_off_value).nonzero())
 print("Cut off index: {:}, Cut off percentage: {:.2f}".format(cut_off_point,100*cut_off_point/successful_results_data.size))
 cut_indices=sort_indices[:cut_off_point]
 ignored_indices=sort_indices[cut_off_point:]

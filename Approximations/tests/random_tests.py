@@ -1,6 +1,6 @@
-# import numpy as np
-# import matplotlib.pyplot as plt
-# import os 
+import numpy as np
+import matplotlib.pyplot as plt
+import os 
 # print(os.getcwd())
 # from Approximations.models import gamma_SVD_model
 # from Approximations.tools import numeric_evaluators
@@ -13,5 +13,7 @@
 
 # print("a b ".split(" ")[:-1])
 
-with open("Approximations/test_file.txt","w") as file:
-    file.write("")
+# with open("Approximations/test_file.txt","w") as file:
+#     file.write("")
+
+print(np.max(np.linalg.svd(np.array([[3,6],[7,2]]))[1]))

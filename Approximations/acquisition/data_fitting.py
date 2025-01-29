@@ -1,5 +1,5 @@
-batch_path="/home/aaron/Desktop/Ta-181 6 Levels 2"
-output_path="/home/aaron/Desktop/Ta-181 6 Levels 2"
+batch_path="/home/Aaron/Desktop/Ta-181 6 Levels 2"
+output_path="/home/Aaron/Desktop/Ta-181 6 Levels 2"
 mode=1 #1:Reich-Moore, 2:gamma SVD
 cut_off_value=1000
 show_ignored_values=True
@@ -164,27 +164,23 @@ fig.set_figheight(15)
 fig.set_figwidth(21)
 fig.suptitle("Final Gamma Array")
 
-final_data=selected_final_gm_matrix_data[:,5,6]
-final_std=np.std(final_data)
-final_bins=np.linspace(0,3*(final_std**2),num_bins)
-
-selected_data=selected_true_gamma_data[:,5,6]
-selected_std=np.std(selected_data)
-
-data=np.power(final_data,2)
-data=np.sort(data)[48:]
-centering=2*(selected_std**2)
-n, bins, rects=axis.hist(data,bins=final_bins,color="purple",alpha=0.75,density=True,label="Final Values")
-fitted_params=chi2.fit(data,6,scale=centering/4)
+data=np.zeros(20000)
+for i in range(20):
+    data=data+np.power(np.random.normal(0,1,20000),2)
+# data=np.power(final_data,2)
+# data=np.sort(data)[48:]
+centering=np.mean(data)
+n, bins, rects=axis.hist(data,bins=num_bins,color="purple",alpha=0.75,density=True,label="Final Values")
+fitted_params=chi2.fit(data,6)
 xlim=axis.get_xlim()
 x_vals=np.linspace(0,xlim[1],2000)
-y_vals_1=chi2.pdf(x_vals,6,0,centering/4)
+# y_vals_1=chi2.pdf(x_vals,6,0,centering/4)
 y_vals_2=chi2.pdf(x_vals,fitted_params[0],fitted_params[1],fitted_params[2])
 num=fitted_params[0]
-y_vals_3=chi_squared(x_vals,num,centering/(2*num))
-axis.plot(x_vals,np.max(n)*y_vals_1/np.max(y_vals_1),color="green")
-axis.plot(x_vals,np.max(n)*y_vals_2/np.max(y_vals_2),color="blue")
-axis.plot(x_vals,np.max(n)*y_vals_3/np.max(y_vals_3),color="red")
+# y_vals_3=chi_squared(x_vals,num,centering/(2*num))
+# axis.plot(x_vals,np.max(n)*y_vals_1/np.max(y_vals_1),color="green")
+axis.plot(x_vals,y_vals_2,color="blue")
+# axis.plot(x_vals,np.max(n)*y_vals_3/np.max(y_vals_3),color="red")
 ylim=axis.get_ylim()
 xlim=axis.get_xlim()
 axis.vlines(centering,0,ylim[1],color="Black")
