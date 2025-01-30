@@ -1,5 +1,5 @@
-batch_path="/home/Aaron/Desktop/Ta-181 6 Levels 2"
-output_path="/home/Aaron/Desktop/Ta-181 6 Levels 2"
+batch_path="/home/aaron/Desktop/Ta-181 6 Levels 2"
+output_path="/home/aaron/Desktop/Ta-181 6 Levels 2"
 mode=1 #1:Reich-Moore, 2:gamma SVD
 cut_off_value=1000
 show_ignored_values=True
@@ -133,7 +133,6 @@ for idx in range(model_run_ids.shape[0]):
 sort_indices=np.argsort(successful_results_data,0)
 successful_results_data=np.take_along_axis(successful_results_data, sort_indices, axis=0)
 cut_off_point=np.min((np.sqrt(successful_results_data.flatten())>cut_off_value).nonzero())
-print("Cut off index: {:}, Cut off percentage: {:.2f}".format(cut_off_point,100*cut_off_point/successful_results_data.size))
 cut_indices=sort_indices[:cut_off_point]
 ignored_indices=sort_indices[cut_off_point:]
 
@@ -150,45 +149,49 @@ selected_true_gamma_data=np.take_along_axis(successful_true_gamma_data, cut_indi
 
 
 
-def chi_squared(x,k,scale):
-    print(x)
-    x=np.copy(x)/scale
-    print(x)
-    g=gamma(k/2)
-    y=(np.power(x,k/(2-1))*np.exp(-x/2))/(np.power(2,k/2)*g)
-    return(y)
-
-num_bins=300
 fig,axis=plt.subplots(1)
 fig.set_figheight(15)
 fig.set_figwidth(21)
-fig.suptitle("Final Gamma Array")
 
-data=np.zeros(20000)
-for i in range(20):
-    data=data+np.power(np.random.normal(0,1,20000),2)
-# data=np.power(final_data,2)
-# data=np.sort(data)[48:]
+num_bins=100
+
+data=selected_final_gm_matrix_data[:,-6,-6]
+data=np.power(data,2)
+data=np.sort(data)
+cut_off_point=np.min((data.flatten()>1.2).nonzero())
+data=data[0:cut_off_point]
+data=data/np.mean(data)
 centering=np.mean(data)
-n, bins, rects=axis.hist(data,bins=num_bins,color="purple",alpha=0.75,density=True,label="Final Values")
-fitted_params=chi2.fit(data,6)
+
+test_data=np.zeros(len(data))
+for i in range(6):
+    test_data=test_data+np.power(np.random.normal(0,1,len(test_data)),2)
+test_scale=np.mean(test_data)
+test_data=test_data/test_scale
+
+n, bins, rects=axis.hist(test_data,bins=num_bins,color="green",alpha=0.75,density=True,label="Expected Shape")
+n, bins, rects=axis.hist(data,bins=num_bins,color="purple",alpha=0.75,density=True,label="Gamma Matrix Values")
 xlim=axis.get_xlim()
 x_vals=np.linspace(0,xlim[1],2000)
-# y_vals_1=chi2.pdf(x_vals,6,0,centering/4)
-y_vals_2=chi2.pdf(x_vals,fitted_params[0],fitted_params[1],fitted_params[2])
-num=fitted_params[0]
+fitted_params=chi2.fit(data,floc=0)
+fitted_test_params=chi2.fit(test_data,floc=0)
+y_vals_1=chi2.pdf(x_vals,fitted_params[0],fitted_params[1],fitted_params[2])
+y_vals_test=chi2.pdf(x_vals,fitted_test_params[0],fitted_test_params[1],fitted_test_params[2])
+# y_vals_2=chi2.pdf(x_vals,6,0,centering/4)
 # y_vals_3=chi_squared(x_vals,num,centering/(2*num))
-# axis.plot(x_vals,np.max(n)*y_vals_1/np.max(y_vals_1),color="green")
-axis.plot(x_vals,y_vals_2,color="blue")
-# axis.plot(x_vals,np.max(n)*y_vals_3/np.max(y_vals_3),color="red")
+axis.plot(x_vals,y_vals_1,color="blue")
+axis.plot(x_vals,y_vals_test,color="black")
+# axis.plot(x_vals,y_vals_2,color="green")
+# axis.plot(x_vals,y_vals_3,color="red")
 ylim=axis.get_ylim()
 xlim=axis.get_xlim()
 axis.vlines(centering,0,ylim[1],color="Black")
-axis.set_ylabel("Relative Density",fontsize=16)
-axis.set_xlabel("Gamma Matrix Value",fontsize=16)
 axis.set_ylim(0,ylim[1])
 axis.set_xlim(0,xlim[1])
-axis.text(0.05, 0.93,'DF: {br:.6f}'.format(br=fitted_params[0]),style='italic',transform=axis.transAxes,va="top",
+axis.text(0.03, 0.96,'DF: {br:.6f}'.format(br=fitted_params[0]),style='italic',transform=axis.transAxes,va="top",ha="left",
+            bbox={'facecolor':'lightgrey','alpha':1,'pad':10})
+axis.text(0.122, 0.9,'DF: {br:.6f}'.format(br=fitted_test_params[0]),style='italic',transform=axis.transAxes,va="top",ha="left",
             bbox={'facecolor':'lightgrey','alpha':1,'pad':10})
 axis.legend(prop={'size': 16})
 plt.show()
+print(fitted_test_params)
