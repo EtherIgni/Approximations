@@ -6,7 +6,7 @@ from Approximations.rmatrix.channels.elastic_channel import ElasticChannel
 from Approximations.rmatrix.channels.capture_channel import CaptureChannel
 from Approximations.rmatrix.spin_group import SpinGroup
 
-class Fundamental():
+class RM_Interface():
     def __init__(self,num_channels,num_resonances) -> None:
         self.num_channels=num_channels
         self.num_resonances=num_resonances
@@ -96,22 +96,3 @@ class Fundamental():
         return(self.spin_group.total_cross_section)
     def get_channels(self)->list:
         return(self.spin_group.channels)
-    
-    
-    
-    def derivative_of_U_matrix(self,spin_group,gamma_der):
-        A_der=-(gamma_der@spin_group.L_matrix@spin_group.gamma_matrix.T+spin_group.gamma_matrix@spin_group.L_matrix@gamma_der.T)
-        A_inv_der=-(spin_group.A_matrix@A_der@spin_group.A_matrix)
-        W_der=2j*spin_group.P_half@(gamma_der.T@spin_group.A_matrix@spin_group.gamma_matrix+
-                     spin_group.gamma_matrix.T@A_inv_der@spin_group.gamma_matrix+
-                     spin_group.gamma_matrix.T@spin_group.A_matrix@gamma_der)@spin_group.P_half
-        U_der=spin_group.omega_matrix@W_der@spin_group.omega_matrix
-        return(U_der)
-    
-    def derivative_of_elastic_channel(self,spin_group,U_der):
-        chan_der=10**24 * np.pi/spin_group.k_sq*(-2*U_der[:,0,0].real+np.conjugate(U_der[:,0,0])*spin_group.U_matrix[:,0,0]+np.conjugate(spin_group.U_matrix[:,0,0])*U_der[:,0,0]).real
-        return(chan_der)
-    
-    def derivative_of_capture_channel(self,spin_group,U_der,channel_num):
-        chan_der=10**24 * np.pi/spin_group.k_sq *(np.conjugate(U_der[:,0,channel_num])*spin_group.U_matrix[:,0,channel_num]+np.conjugate(spin_group.U_matrix[:,0,channel_num])*U_der[:,0,channel_num]).real
-        return(chan_der)
