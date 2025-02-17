@@ -1,30 +1,112 @@
 import numpy as np
 from copy import deepcopy
 
-from Approximations.models import basic
+from Approximations.models.math_models.R_matrix import RM_Interface
 
-def reshape(gamma_elements:np.array)->np.array:
-        num_resonances=int(gamma_elements.size/2)
-        num_channels=num_resonances+1
 
-        gamma_matrix=np.zeros((num_resonances,num_channels),float)
-        gamma_matrix[:,0]=gamma_elements[:num_resonances]
-        gamma_matrix[:,1:]=np.diag(gamma_elements[num_resonances:num_resonances*2])
+
+
+
+
+def reshape(gamma_elements:np.array,num_levels:int,num_channels:int)->np.array:
+        gamma_matrix=np.zeros((num_levels,num_channels),float)
+        gamma_matrix[:,0]=gamma_elements[:num_levels]
+        gamma_matrix[:,1:]=np.diag(gamma_elements[num_levels:])
         return(gamma_matrix)
 
-class Reich_Moore(basic.Fundamental):
-    def __init__(self, *args, **kwargs):
-        super(Reich_Moore, self).__init__(*args, **kwargs)
-        self.init_guess_full={}
+
+
+
+
+
+class Reich_Moore():
+    def __init__(self,
+                 molecular_information,
+                 interaction_information,
+                 model_information):
+        assert "Incident Name"      in molecular_information,   "Model Gen Failed: Incident Name not provided in molecular_information"
+        assert "Incident Protons"   in molecular_information,   "Model Gen Failed: Incident Protons not provided in molecular_information"
+        assert "Incident Nucleons"  in molecular_information,   "Model Gen Failed: Incident Nucleons not provided in molecular_information"
+        assert "departing Name"     in molecular_information,   "Model Gen Failed: departing Name not provided in molecular_information"
+        assert "departing Protons"  in molecular_information,   "Model Gen Failed: departing Protons not provided in molecular_information"
+        assert "departing Nucleons" in molecular_information,   "Model Gen Failed: departing Nucleons not provided in molecular_information"
+        assert "Compound Name"      in molecular_information,   "Model Gen Failed: Compound Name not provided in molecular_information"
+        assert "Compound Protons"   in molecular_information,   "Model Gen Failed: Compound Protons not provided in molecular_information"
+        assert "Compound Nucleons"  in molecular_information,   "Model Gen Failed: Compound Nucleons not provided in molecular_information"
+        assert "Separation Energy"  in interaction_information, "Model Gen Failed: Separation Energy not provided in interaction_information"
+        assert "Number Levels"      in interaction_information, "Model Gen Failed: Number Levels not provided in interaction_information"
+        assert "Excited States"     in interaction_information, "Model Gen Failed: Excited States not provided in interaction_information"
+        assert "Resonance Levels"   in interaction_information, "Model Gen Failed: Resonance Levels not provided in interaction_information"
+        assert "Energy Grid"        in model_information,       "Model Gen Failed: Energy Grid not provided in model_information"
+        
+        self.init_guess_full = {}
+        self.num_levels      = interaction_information["Number Levels"]
+        self.num_channels    = self.num_levels+1
+        excited_states       = interaction_information["Excited States"][:self.num_levels]
+        resonances           = interaction_information["Resonance Levels"]
+        energy_grid          = interaction_information["Energy Grid"]
+        self.math_model      = RM_Interface(num_channels,self.num_levels)
+    
+        #Defines interaction state
+        incident  = Particle(molecular_information["Incident Name"],
+                             molecular_information["Incident Protons"],
+                             molecular_information["Incident Nucleons"])
+        departing = Particle(molecular_information["departing Name"],
+                             molecular_information["departing Protons"],
+                             molecular_information["departing Nucleons"])
+        target    = Particle(molecular_information["Compound Name"],
+                             molecular_information["Compound Protons"],
+                             molecular_information["Compound Nucleons"])
+        compound  = Particle(molecular_information["Compound Name"],
+                             molecular_information["Compound Protons"],
+                             molecular_information["Compound Nucleons"],
+                             Sn=interaction_information["Separation Energy"])
+        self.math_model.set_incoming(incident)
+        self.math_model.set_outgoing(departing)
+        self.math_model.set_target(target)
+        self.math_model.set_compound(compound)
+
+        #Creates elastic channel
+        J                        = 3
+        pi                       = 1
+        ell                      = 0
+        radius                   = 0.2
+        reduced_width_amplitudes = np.ones(self.num_levels)
+        self.math_model.set_elastic_channel(J,
+                                            pi,
+                                            ell,
+                                            radius,
+                                            reduced_width_amplitudes)
+
+        #Creates inelastic channels
+        for idx,excitation in enumerate(excited_states):
+            J                             = 3
+            pi                            = 1
+            ell                           = 0
+            radius                        = 0.2
+            reduced_width_amplitudes      = np.zeros(self.num_levels)
+            reduced_width_amplitudes[idx] = 1
+            self.math_model.add_capture_channel(J,
+                                                pi,
+                                                ell,
+                                                radius,
+                                                reduced_width_amplitudes,
+                                                excitation)
+
+        #Sets resonances and energy grid
+        self.math_model.set_resonance_energies(resonances)
+        self.math_model.set_energy_grid(energy_grid)
+
+        self.math_model.establish_spin_group()
     
 
-    
+
     def evaluate(self,gamma_elements:np.array)->float:
         assert not(gamma_elements.size<2*self.num_resonances), "Not Enough gamma elements to derivate"
         assert not(gamma_elements.size>2*self.num_resonances), "Too many gamma elements to derivate"
 
         gamma_matrix=reshape(gamma_elements)
-        test_spin_group = deepcopy(self.spin_group)
+        test_spin_group = deepcopy(self.math_model.spin_group)
         test_spin_group.update_gamma_matrix(gamma_matrix)
         
         errors=np.zeros((self.num_channels,len(self.energy_grid)))
@@ -36,7 +118,9 @@ class Reich_Moore(basic.Fundamental):
 
         return(total_error)
     
-    def derivate(self,gamma_elements:np.array)->np.array:
+
+
+    def calcGradient(self,gamma_elements:np.array)->np.array:
         def evaluator_partial_der(test_spin_group,gamma_der):
                     U_der=self.derivative_of_U_matrix(test_spin_group,gamma_der)
 
@@ -72,7 +156,7 @@ class Reich_Moore(basic.Fundamental):
 
         return(gradient)
     
-    
+
 
     def calc_hessian_and_gradient(self,gamma_vector):
         data_types=[float,complex]
@@ -186,16 +270,3 @@ class Reich_Moore(basic.Fundamental):
                                         2*np.sum(xs_true[1:]-xs_fit[1:],0) * np.sum(-xs_hessian[i,j,1:],0))
         
         return(error_gradient,error_hessian)
-    
-    
-
-    def add_initial_guesses(self,name:str,guess:np.array)->None:
-        self.init_guess_full[name]=guess
-    def remove_initial_guesses(self,name:str)->None:
-        self.init_guess_full.pop(name)
-    def clear_initial_guesses(self)->None:
-        self.init_guess_full={}
-    def get_initial_guesses(self,name:str)->np.array:
-        return(self.init_guess_full[name])
-    def list_initial_guesses(self)->list:
-        return(self.init_guess_full.keys())
