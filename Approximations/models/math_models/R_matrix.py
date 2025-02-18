@@ -76,8 +76,8 @@ class RM_Interface():
     def establish_spin_group(self)->None:
         assert len(self.res_energies)>0, "Resonance energies not set."
         assert not(self.elastic_channel==None), "Elastic channel not set."
-        assert not(len(self.capture_channels)<self.num_levels), "Not enough capture channels set."
-        assert not(len(self.capture_channels)>self.num_levels), "too many capture channels set."
+        assert not(len(self.capture_channels)<(self.num_channels-1)), "Not enough capture channels set."
+        assert not(len(self.capture_channels)>(self.num_channels-1)), "too many capture channels set."
         assert len(self.energy_grid)>0, "Energy grid not set."
         self.spin_group=SpinGroup(self.res_energies, self.elastic_channel, self.capture_channels,self.energy_grid)
         self.spin_group.calc_cross_section()
@@ -96,3 +96,17 @@ class RM_Interface():
         return(self.spin_group.total_cross_section)
     def get_channels(self)->list:
         return(self.spin_group.channels)
+    
+    def get_data(self, gamma_matrix=None)->np.array:
+        if(gamma_matrix is None):
+            test_spin_group=self.spin_group
+        else:
+            test_spin_group = deepcopy(self.spin_group)
+            test_spin_group.update_gamma_matrix(gamma_matrix)
+
+        data    = [np.zeros(len(self.energy_grid)), np.zeros((self.num_channels, len(self.energy_grid)))]
+        data[0] = test_spin_group.total_cross_section
+        for idx in range(self.num_channels):
+            data[1][idx,:] = test_spin_group.channels[idx].cross_section
+
+        return(data)

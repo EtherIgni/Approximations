@@ -4,64 +4,104 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-from Approximations.tools  import initial_estimates,fitting
-from Approximations.models import reich_moore_model,gamma_SVD_model,generic_model_gen
+from Approximations.models.problem_container import Problem
 
-mode=1
+molecular_information   = {"Incident Name":     "n",
+                           "Incident Nucleons":  0,
+                           "Incident Protons":   1,
+                           "Departing Name":     "g",
+                           "Departing Nucleons": 0,
+                           "Departing Protons":  0,
+                           "Compound Name":      "181Ta",
+                           "Compound Nucleons":  181,
+                           "Compound Protons":   71}
 
-separation_energy=float(7.5767E6) #ev
-resonance_distance=600 #ev
-resonance_avg_separation=8 #ev
-gamma_variance=float(32E-3) #ev
-neutron_variance=float(452.5E-3) #ev
-excited_states=[0, float(6.237E3),float(136.269E3)]#,float(152.320E3),float(301.622E3),float(337.54E3)] #ev
-energy_grid_buffer=20 #ev
-energy_grid_size=1001
+interaction_information = {"Separation Energy":         float(7.5767E6),
+                           "Gamma Variance":            float(32E-3),
+                           "Neutron Variance":          float(452.5E-3),
+                           "Excited States":            [0, float(6.237E3),float(136.269E3),float(152.320E3)],#,float(301.622E3),float(337.54E3)],
+                           "Number Levels":             2,
+                           "Resonance Distance":        600,
+                           "Resonance Average Spacing": 8}
 
-problem=generic_model_gen.create_leveled_model(separation_energy,
-                                               resonance_distance,
-                                               resonance_avg_separation,
-                                               gamma_variance,
-                                               neutron_variance,
-                                               excited_states,
-                                               energy_grid_buffer,
-                                               energy_grid_size,
-                                               reich_moore_model.Reich_Moore if mode==1 else gamma_SVD_model.Gamma_SVD)
-if(mode==1):
-    vector=initial_estimates.reich_moore_guess(problem.get_gamma_matrix())
-else:
-    vector=initial_estimates.gamma_SVD_approx(problem.get_gamma_matrix())
-lm_multiplier=1.5
-lm_min=float(10e-8)
-lm_max=float(10e8)
-lm_constant=lm_max
-improvement_threshold=0.1
-LMA_vector,iteration=fitting.LMA(vector,
-                             problem.evaluate,
-                             problem.calc_hessian_and_gradient,
-                             float(10e6),
-                             1.5,
-                             float(10e-8),
-                             float(10e16),
-                             0.1,
-                             1000,
-                             0)
-print(iteration)
-print(problem.evaluate(vector))
-print(problem.evaluate(LMA_vector))
-iterable=np.ones(vector.shape)
-gradient_step=float(1000)
-best_fit_vector,iterations=fitting.gradient_descent_half_step(vector,
-                                                              iterable,
-                                                              problem.derivate,
-                                                              gradient_step,
-                                                              problem.evaluate,
-                                                              float(1E-6),
-                                                              [100,100],
-                                                              5,
-                                                              0,
-                                                              0)
-print(problem.evaluate(best_fit_vector))
+model_information       = {"Energy Grid Size":   1001,
+                           "Energy Grid Buffer": 20}
+
+fitting_parameters      = {"Iteration Limit":        1000,
+                           "Improvement Threshold":  0.1,
+                           "Initial Priority":       float(10E6),
+                           "Priority Multiplier":    1.5,
+                           "Priority Minimum":       float(10E-8),
+                           "Priority Maximum":       float(10E16)}
+
+selections              = {"Data Model": 1,
+                           "Fit Model":  1,
+                           "Fit Method": 2}
+
+test_problem=Problem(molecular_information,
+                     interaction_information,
+                     model_information,
+                     fitting_parameters,
+                     selections)
+ 
+print(test_problem.data_model.math_model.get_gamma_matrix())
+print(test_problem.fit_model.math_model.get_gamma_matrix())
+initial_guess=test_problem.getInitialGuess()
+print(initial_guess)
+print(test_problem.data)
+print(test_problem.fit_model.evaluate(initial_guess,test_problem.data))
+print(test_problem.fit_model.calcGradientAndHessian(initial_guess,test_problem.data))
+print(test_problem.fit_model.calcGradient(initial_guess,test_problem.data))
+print(test_problem.fit_call(initial_guess,test_problem.data))
+# if(mode==1):
+#     vector=initial_estimates.reich_moore_guess(problem.get_gamma_matrix())
+# else:
+#     vector=initial_estimates.gamma_SVD_approx(problem.get_gamma_matrix())
+# lm_multiplier=1.5
+# lm_min=float(10e-8)
+# lm_max=float(10e8)
+# lm_constant=lm_max
+# improvement_threshold=0.1
+# LMA_vector,iteration=fitting.LMA(vector,
+#                              problem.evaluate,
+#                              problem.calc_hessian_and_gradient,
+#                              float(10e6),
+#                              1.5,
+#                              float(10e-8),
+#                              float(10e16),
+#                              0.1,
+#                              1000,
+#                              0)
+# print(iteration)
+# print(problem.evaluate(vector))
+# print(problem.evaluate(LMA_vector))
+# iterable=np.ones(vector.shape)
+# gradient_step=float(1000)
+# best_fit_vector,iterations=fitting.gradient_descent_half_step(vector,
+#                                                               iterable,
+#                                                               problem.derivate,
+#                                                               gradient_step,
+#                                                               problem.evaluate,
+#                                                               float(1E-6),
+#                                                               [100,100],
+#                                                               5,
+#                                                               0,
+#                                                               0)
+# print(problem.evaluate(best_fit_vector))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # previous=problem.evaluate(best_fit_vector)
 # gradient,hessian=problem.calc_hessian_and_gradient(best_fit_vector)
 # print(previous)

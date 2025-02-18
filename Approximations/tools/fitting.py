@@ -125,21 +125,21 @@ def gradientDescent(evaluation_model,
 
     evaluator=evaluation_model.evaluate
     calculator=evaluation_model.calcGradient
-    def fittingFunc(initial_vector):
+    def fittingFunc(initial_vector,data):
         vector=initial_vector
-        previous_result=evaluator(vector)
+        previous_result=evaluator(vector,data)
         converged=False
         if debug>2: num_true_steps=0
         con_step_down=0
         con_no_step=0
         for k in range(parameters["Iteration Limit"]):
-            gradient=calculator(vector)
+            gradient=calculator(vector,data)
             if debug>3:
                 x=np.linspace(0,parameters["Largest Gradient Step"],1000)
                 y=np.empty(x.shape)
                 for idx,i in enumerate(x):
                     test_vector=vector-gradient*i
-                    y[idx]=evaluator(test_vector)
+                    y[idx]=evaluator(test_vector,data)
 
                 plt.plot(x,y)
                 plt.xscale("linear")
@@ -154,7 +154,7 @@ def gradientDescent(evaluation_model,
                 if debug>2: print("Step Size:",current_step_size)
                 test_vector=vector-gradient*current_step_size
                 if debug>2: print("New Position\n",test_vector)
-                current_result=evaluator(test_vector)
+                current_result=evaluator(test_vector,data)
                 if debug>2: print("Result to Beat:",previous_result)
                 if debug>2: print("Step Result:",current_result)
                 if(current_result<previous_result):
@@ -221,33 +221,33 @@ def levenbergMarquardt(evaluation_model,
     #   calcGradientAndHessian
 
     evaluator=evaluation_model.evaluate
-    calculator=evaluation_model.gradientAndHessian
-    def fittingFunc(initial_vector):
+    calculator=evaluation_model.calcGradientAndHessian
+    def fittingFunc(initial_vector,data):
         #Initialization
         v_length=len(initial_vector)
         priority=parameters["Initial Priority"]
         vector=initial_vector
-        evaluation=evaluator(vector)
+        evaluation=evaluator(vector,data)
         #LM Loop
         for iteration in range(parameters["Iteration Limit"]):
             #Calculates Values
-            gradient,hessian=calculator(vector)
+            gradient,hessian=calculator(vector,data)
             #Gets Step Size
             difference=np.linalg.inv(hessian+priority*np.eye(v_length))@gradient
             #Tests a step and evaluates it
             new_vector=vector-difference
-            new_evaluation=evaluator(new_vector)
+            new_evaluation=evaluator(new_vector,data)
             error_change=evaluation-new_evaluation
             metric=error_change/np.abs(difference.T@(priority*difference+gradient))
             #Updates loop based on evaluation
             if(metric>parameters["Improvement Threshold"]):
-                priority=np.max([priority/parameters["Priority Multiplier"],parameters["priority Minimum"]])
+                priority=np.max([priority/parameters["Priority Multiplier"],parameters["Priority Minimum"]])
                 vector=new_vector
                 evaluation=new_evaluation
             elif(priority):
                 #Exits if no further improvement can be made in this format
-                if(priority==parameters["priority Maximum"]):
+                if(priority==parameters["Priority Maximum"]):
                     break
-                priority=np.min([priority*parameters["Priority Multiplier"],parameters["priority Maximum"]])
+                priority=np.min([priority*parameters["Priority Multiplier"],parameters["Priority Maximum"]])
         return(vector,iteration)
     return(fittingFunc)
