@@ -2,69 +2,77 @@ import numpy as np
 import time
 import sys, os
 
-from Approximations.tools  import initial_estimates,fitting
-from Approximations.models import reich_moore_model,gamma_SVD_model,generic_model_gen
+from Approximations.models.problem_container import Problem
+
+
+
+
 
 
 def run_acquisition(batch_id,
                     number_attempts,
-                    mode,
-                    model_parameters):
-
-    file_name=["null","rm","svd"]
-    file_path=os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+                    molecular_information,
+                    interaction_information,
+                    model_information,
+                    fitting_parameters,
+                    selections):
+    file_name = str(selections["Data Model"]) + str(selections["Fit Model"]) + str(selections["Fit Method"])
+    file_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     try:
-        f = open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", "r")
+        f     = open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/model data.txt", "r")
         lines = f.readlines()
         if(len(lines)>0):
-            last_entry=lines[-1]
-            run_id=int(last_entry[0:last_entry.find(" ")])+1
+            last_entry = lines[-1]
+            run_id     = int(last_entry[0:last_entry.find(" ")])+1
         else:
-            run_id=1
+            run_id     = 1
     except:
-        os.mkdir(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id))
-        open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", 'w')
-        open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/successful run data.txt", 'w')
-        open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", 'w')
-        run_id=1
+        os.mkdir(file_path+"/run_data/"+file_name)
+        os.mkdir(file_path+"/run_data/"+file_name+"/batch "+str(batch_id))
+        open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/model data.txt", 'w')
+        open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/successful run data.txt", 'w')
+        open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/failed run data.txt", 'w')
+        run_id = 1
+
+
 
     print("Running")
-    Start_time=time.time()
-    for attempt in range(1,number_attempts):
-        failure_text="Passed"
+    Start_time = time.time()
+    for attempt in range(1, number_attempts):
+        failure_text = "Passed"
         try:
-            problem=generic_model_gen.create_leveled_model(model_parameters["compound Name"],
-                                                           model_parameters["N"],
-                                                           model_parameters["Z"],
-                                                           model_parameters["Separation Energy"],
-                                                           model_parameters["Resonance Distance"],
-                                                           model_parameters["Resonance Avg Separation"],
-                                                           model_parameters["Gamma Variance"],
-                                                           model_parameters["Neutron Variance"],
-                                                           model_parameters["Excited States"],
-                                                           model_parameters["Energy Grid Buffer"],
-                                                           model_parameters["Energy Grid Size"],
-                                                           reich_moore_model.Reich_Moore if mode==1 else gamma_SVD_model.Gamma_SVD)
-            num_levels=len(model_parameters["Excited States"])
+            problem      = Problem(molecular_information,
+                                    interaction_information,
+                                    model_information,
+                                    fitting_parameters,
+                                    selections)
+            num_levels   = interaction_information["Number Levels"]
+            num_channels = len(interaction_information["Excited States"])
         except:
             mins,secs=divmod(int(time.time()-Start_time),60)
             hrs,mins=divmod(mins,60)
             print(str(run_id)+"|"+str(attempt),"No Model Generation",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
             continue
+
+
+
         try:
-            with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/model data.txt", "a") as text_file:
-                resonance_energies=problem.get_resonance_energies()
-                true_gamma_matrix=problem.get_gamma_matrix()
+            with open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/model data.txt", "a") as text_file:
+                #Gets Information about generated data model 
+                resonance_energies = problem.data_model.math_model.get_resonance_energies()
+                true_gamma_matrix  = problem.data_model.math_model.get_gamma_matrix()
+
+                #Record Information
                 text=str(run_id)+" "+str(attempt)+" | "
                 for idx in range(1,resonance_energies.size):
                     text=text+str(resonance_energies[idx]-resonance_energies[idx-1])+" "
                 text=text+"| "
-                for excitation in model_parameters["Excited States"]:
-                    text=text+str(problem.get_elastic_channel().calc_penetrability(model_parameters["Separation Energy"]-excitation))+" "
+                for excitation in interaction_information["Excited States"]:
+                    text=text+str(problem.data_model.math_model.get_elastic_channel().calc_penetrability(interaction_information["Separation Energy"]-excitation))+" "
                 text=text+"| "
                 for level in range(num_levels):
-                    for excitation in model_parameters["Excited States"]:
-                        text=text+str(problem.get_capture_channels()[level].calc_penetrability(model_parameters["Separation Energy"]-excitation))+" "
+                    for excitation in interaction_information["Excited States"]:
+                        text=text+str(problem.data_model.math_model.get_capture_channels()[level].calc_penetrability(interaction_information["Separation Energy"]-excitation))+" "
                 text=text+"| "
                 for row in range(num_levels):
                     for col in range(num_levels+1):
@@ -76,39 +84,25 @@ def run_acquisition(batch_id,
             hrs,mins=divmod(mins,60)
             print(str(run_id)+"|"+str(attempt),"No Model Logging",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
             continue
+
+
+
         try:
-            if(mode==1):
-                initial_vector=initial_estimates.reich_moore_guess(problem.get_gamma_matrix())
-            else:
-                initial_vector=initial_estimates.gamma_SVD_approx(problem.get_gamma_matrix())
-            lm_multiplier=1.5
-            lm_min=float(10e-8)
-            lm_max=float(10e16)
-            lm_constant=float(10e6)
-            improvement_threshold=0.1
-            lm_depth=200
-            best_fit_vector,iterations=fitting.LMA(initial_vector,
-                                        problem.evaluate,
-                                        problem.calc_hessian_and_gradient,
-                                        lm_constant,
-                                        lm_multiplier,
-                                        lm_min,
-                                        lm_max,
-                                        improvement_threshold,
-                                        lm_depth,
-                                        0)
-            result=problem.evaluate(best_fit_vector)
+            initial_vector=problem.getInitialGuess()
+            problem_data=problem.data
+            best_fit_vector,iterations=problem.fit_call(initial_vector,problem_data)
+            result=problem.fit_model.evaluate(best_fit_vector,problem_data)
         except Exception as e:
             try:
                 the_type, the_value, the_traceback = sys.exc_info()
-                with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", "a") as text_file:
+                with open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/failed run data.txt", "a") as text_file:
                     text_file.write(str(run_id)+" "+str(attempt)+" "+str(the_value)+"\n")
                 mins,secs=divmod(int(time.time()-Start_time),60)
                 hrs,mins=divmod(mins,60)
                 print(str(run_id)+"|"+str(attempt),"Model Fit Failed",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
             except:
                 try:
-                    with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/failed run data.txt", "a") as text_file:
+                    with open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/failed run data.txt", "a") as text_file:
                         text_file.write(str(run_id)+" "+str(attempt)+" Unresolvable Error\n")
                     mins,secs=divmod(int(time.time()-Start_time),60)
                     hrs,mins=divmod(mins,60)
@@ -118,8 +112,11 @@ def run_acquisition(batch_id,
                     hrs,mins=divmod(mins,60)
                     print(str(run_id)+"|"+str(attempt),"Weird Ahh Error",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
             continue
+
+
+
         try:
-            with open(file_path+"/run data/"+file_name[mode]+"/batch "+str(batch_id)+"/successful run data.txt", "a") as text_file:
+            with open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/successful run data.txt", "a") as text_file:
                 text=str(run_id)+" "+str(attempt)+" | "
                 for val in initial_vector:
                     text=text+str(val)+" "
@@ -137,31 +134,55 @@ def run_acquisition(batch_id,
             print(str(run_id)+"|"+str(attempt),"No Model Fit Logging",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
 
 
-model_parameters_Ta_181={"compound Name":'181Ta',
-                         "N":181, ##Particles
-                         "Z":71, ##Protons
-                         "Separation Energy":float(7.5767E6), #ev
-                         "Resonance Distance":600, #ev
-                         "Resonance Avg Separation":8, #ev
-                         "Gamma Variance":float(32E-3), #ev
-                         "Neutron Variance":float(452.5E-3), #ev
-                         "Excited States":np.array([0, float(6.237E3),float(136.269E3),float(152.320E3),float(301.622E3),float(337.54E3)]), #ev
-                         "Energy Grid Buffer":20, #ev
-                         "Energy Grid Size":1001}
 
-model_parameters_Pb_208={"compound Name":'181Ta',
-                         "N":208, ##Particles
-                         "Z":82, ##Protons
-                         "Separation Energy":float(7.36787E6), #ev
-                         "Resonance Distance":2000, #ev 2E-6
-                         "Resonance Avg Separation":12E3, #ev
-                         "Gamma Variance":float(32E-3), #ev
-                         "Neutron Variance":float(452.5E-3), #ev
-                         "Excited States":np.array([0, float(2.614522E6)]),#float(3.197711E6),float(3.475078E6),float(3.708451E6),float(3.919966E6)]), #ev
-                         "Energy Grid Buffer":20, #ev
-                         "Energy Grid Size":1001}
 
-run_acquisition(batch_id=1,
-                number_attempts=10000,
-                mode=1,
-                model_parameters=model_parameters_Pb_208)
+
+
+molecular_information   = {"Incident Name":     "n",
+                           "Incident Nucleons":  0,
+                           "Incident Protons":   1,
+                           "Departing Name":     "g",
+                           "Departing Nucleons": 0,
+                           "Departing Protons":  0,
+                           "Compound Name":      "181Ta",
+                           "Compound Nucleons":  181,
+                           "Compound Protons":   71}
+
+interaction_information = {"Separation Energy":         float(7.5767E6),
+                           "Gamma Variance":            float(32E-3),
+                           "Neutron Variance":          float(452.5E-3),
+                           "Number Levels":             2,
+                           "Resonance Distance":        600,
+                           "Resonance Average Spacing": 8}
+
+model_information       = {"Energy Grid Size":   1001,
+                           "Energy Grid Buffer": 20}
+
+fitting_parameters      = {"Iteration Limit":        1000,
+                           "Improvement Threshold":  0.1,
+                           "Initial Priority":       float(10E6),
+                           "Priority Multiplier":    1.5,
+                           "Priority Minimum":       float(10E-8),
+                           "Priority Maximum":       float(10E16)}
+
+selections              = {"Data Model": 1,
+                           "Fit Model":  1,
+                           "Fit Method": 2}
+                
+all_excited_states      = np.array([0,
+                                    float(6.237E3),
+                                    float(136.269E3),
+                                    float(152.320E3),
+                                    float(301.622E3),
+                                    float(337.54E3)])
+
+for id in range(1,len(all_excited_states)):
+    
+    interaction_information["Excited States"]=all_excited_states[:id+1]
+    run_acquisition(batch_id=1,
+                    number_attempts=10000,
+                    molecular_information=molecular_information,
+                    interaction_information=interaction_information,
+                    model_information=model_information,
+                    fitting_parameters=fitting_parameters,
+                    selections=selections)
