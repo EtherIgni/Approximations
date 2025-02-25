@@ -38,21 +38,21 @@ selections              = {"Data Model": 1,
                            "Fit Model":  1,
                            "Fit Method": 2}
 
-test_problem=Problem(molecular_information,
-                     interaction_information,
-                     model_information,
-                     fitting_parameters,
-                     selections)
+testProblem = Problem(molecular_information,
+                      interaction_information,
+                      model_information,
+                      fitting_parameters,
+                      selections)
  
-print(test_problem.data_model.math_model.get_gamma_matrix())
-print(test_problem.fit_model.math_model.get_gamma_matrix())
-initial_guess=test_problem.getInitialGuess()
+print(testProblem.data_model.math_model.get_Gamma_Matrix())
+print(testProblem.fit_model.math_model.get_Gamma_Matrix())
+initial_guess=testProblem.get_Initial_Guess()
 print(initial_guess)
-print(test_problem.data)
-print(test_problem.fit_model.evaluate(initial_guess,test_problem.data))
-print(test_problem.fit_model.calcGradientAndHessian(initial_guess,test_problem.data))
-print(test_problem.fit_model.calcGradient(initial_guess,test_problem.data))
-print(test_problem.fit_call(initial_guess,test_problem.data))
+print(testProblem.data)
+print(testProblem.fit_model.evaluate(initial_guess,testProblem.data))
+print(testProblem.fit_model.calc_Gradient_And_Hessian(initial_guess,testProblem.data))
+print(testProblem.fit_model.calc_Gradient(initial_guess,testProblem.data))
+print(testProblem.fit_Call(initial_guess,testProblem.data))
 # if(mode==1):
 #     vector=initial_estimates.reich_moore_guess(problem.get_gamma_matrix())
 # else:

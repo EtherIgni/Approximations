@@ -1,7 +1,7 @@
 import numpy as np
 from   copy  import deepcopy
 
-from Approximations.models.math_models.R_matrix import RM_Interface
+from Approximations.models.math_models.R_matrix import RMInterface
 from Approximations.rmatrix.base.particles      import Particle
 
 
@@ -22,7 +22,7 @@ def reshape(gamma_vector:np.array,num_levels:int,num_channels:int)->np.array:
 
 
 
-class Reich_Moore():
+class ReichMoore():
     def __init__(self,
                  molecular_information,
                  interaction_information,
@@ -48,7 +48,7 @@ class Reich_Moore():
         excited_states       = interaction_information["Excited States"][:self.num_levels]
         resonances           = interaction_information["Resonance Levels"]
         energy_grid          = model_information["Energy Grid"]
-        self.math_model      = Extended_R_Matrix(self.num_channels,self.num_levels)
+        self.math_model      = ExtendedRMatrix(self.num_channels,self.num_levels)
     
         #Defines interaction state
         incident  = Particle(molecular_information["Incident Name"],
@@ -64,10 +64,10 @@ class Reich_Moore():
                              molecular_information["Compound Nucleons"],
                              molecular_information["Compound Protons"],
                              Sn=interaction_information["Separation Energy"])
-        self.math_model.set_incoming(incident)
-        self.math_model.set_outgoing(departing)
-        self.math_model.set_target(target)
-        self.math_model.set_compound(compound)
+        self.math_model.set_Incoming(incident)
+        self.math_model.set_Outgoing(departing)
+        self.math_model.set_Target(target)
+        self.math_model.set_Compound(compound)
 
         #Creates elastic channel
         J                        = 3
@@ -75,7 +75,7 @@ class Reich_Moore():
         ell                      = 0
         radius                   = 0.2
         reduced_width_amplitudes = np.ones(self.num_levels)
-        self.math_model.set_elastic_channel(J,
+        self.math_model.set_Elastic_Channel(J,
                                             pi,
                                             ell,
                                             radius,
@@ -89,7 +89,7 @@ class Reich_Moore():
             radius                        = 0.2
             reduced_width_amplitudes      = np.zeros(self.num_levels)
             reduced_width_amplitudes[idx] = 1
-            self.math_model.add_capture_channel(J,
+            self.math_model.add_Capture_Channel(J,
                                                 pi,
                                                 ell,
                                                 radius,
@@ -97,10 +97,10 @@ class Reich_Moore():
                                                 excitation)
 
         #Sets resonances and energy grid
-        self.math_model.set_resonance_energies(resonances)
-        self.math_model.set_energy_grid(energy_grid)
+        self.math_model.set_Resonance_Energies(resonances)
+        self.math_model.set_Energy_Grid(energy_grid)
 
-        self.math_model.establish_spin_group()
+        self.math_model.establish_Spin_Group()
     
 
 
@@ -110,30 +110,30 @@ class Reich_Moore():
 
 
 
-    def calcGradient(self, gamma_vector, data):
+    def calc_Gradient(self, gamma_vector, data):
         gamma_matrix=reshape(gamma_vector, self.num_levels, self.num_channels)
-        return(self.math_model.calcGradientAndHessian(gamma_matrix,data,both=False))
+        return(self.math_model.calc_Gradient_And_Hessian(gamma_matrix,data,both=False))
 
 
 
-    def calcGradientAndHessian(self, gamma_vector, data):
+    def calc_Gradient_And_Hessian(self, gamma_vector, data):
         gamma_matrix=reshape(gamma_vector, self.num_levels, self.num_channels)
-        return(self.math_model.calcGradientAndHessian(gamma_matrix, data))
+        return(self.math_model.calc_Gradient_And_Hessian(gamma_matrix, data))
 
 
 
 
 
 
-class Extended_R_Matrix(RM_Interface):
+class ExtendedRMatrix(RMInterface):
     def __init__(self, *args, **kwargs):
-        super(Extended_R_Matrix, self).__init__(*args, **kwargs)
+        super(ExtendedRMatrix, self).__init__(*args, **kwargs)
         self.init_guess_full={}
 
 
 
     def evaluate(self,gamma_matrix:np.array,data:np.array)->float:
-        test_data = self.get_data(gamma_matrix)
+        test_data = self.get_Data(gamma_matrix)
         
         errors = np.zeros((self.num_channels, len(self.energy_grid)))
         for idx in range(self.num_channels):
@@ -146,14 +146,14 @@ class Extended_R_Matrix(RM_Interface):
 
 
 
-    def calcGradientAndHessian(self,gamma_matrix,data,both=True):
+    def calc_Gradient_And_Hessian(self,gamma_matrix,data,both=True):
         data_types      = [float, complex]
         energy_length   = self.energy_grid.size
         num_independent = self.num_levels*2
 
 
         #Creating a copy of the spin model to calculate values at the current position
-        test_data = self.get_data(gamma_matrix)
+        test_data = self.get_Data(gamma_matrix)
 
 
         #Calculating current element values

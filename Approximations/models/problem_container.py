@@ -1,20 +1,20 @@
 import numpy as np
 
-from   Approximations.models.data_models.R_matrix_full        import R_Matrix_Full
-from   Approximations.models.fitting_models.reich_moore_model import Reich_Moore
-from   Approximations.tools.fitting                           import gradientDescent
-from   Approximations.tools.fitting                           import levenbergMarquardt
-import Approximations.tools.distributions                     as     distributions
+from   Approximations.models.data_models.R_matrix_full        import RMatrixFull
+from   Approximations.models.fitting_models.reich_moore_model import ReichMoore
+from   Approximations.tools.fitting                           import gradient_Descent
+from   Approximations.tools.fitting                           import levenberg_Marquardt
+import Approximations.tools.distributions                     as     Distributions
 
 
 
 
 
 class Problem():
-    data_model_formats = [R_Matrix_Full]
-    fit_model_formats  = [Reich_Moore]
-    fitting_algorithms = [gradientDescent,
-                          levenbergMarquardt]
+    data_model_formats = [RMatrixFull]
+    fit_model_formats  = [ReichMoore]
+    fitting_algorithms = [gradient_Descent,
+                          levenberg_Marquardt]
 
     def __init__(self,
                  molecular_information,
@@ -63,23 +63,23 @@ class Problem():
         self.fitting_parameters      = fitting_parameters
         self.selections              = selections
 
-        self.sampleInformation()
+        self.sample_Information()
 
-        self.data_model = self.formModel(self.data_model_formats,
-                                         self.selections["Data Model"])
-        self.fit_model  = self.formModel(self.fit_model_formats,
-                                         self.selections["Fit Model"])
+        self.data_model = self.form_Model(self.data_model_formats,
+                                          self.selections["Data Model"])
+        self.fit_model  = self.form_Model(self.fit_model_formats,
+                                          self.selections["Fit Model"])
 
-        self.fit_call = self.formFitCall(self.fitting_algorithms,
-                                         self.selections["Fit Method"])
+        self.fit_Call = self.form_Fit_Call(self.fitting_algorithms,
+                                           self.selections["Fit Method"])
         
-        self.generateData()
+        self.data     = self.generate_Data()
 
     
 
-    def formModel(self,
-                  model_formats,
-                  model_selection):
+    def form_Model(self,
+                   model_formats,
+                   model_selection):
         model = model_formats[model_selection-1]
         return(model(self.molecular_information,
                      self.interaction_information,
@@ -87,9 +87,9 @@ class Problem():
     
 
 
-    def formFitCall(self,
-                    fitting_algorithms,
-                    algorithm_choice):
+    def form_Fit_Call(self,
+                      fitting_algorithms,
+                      algorithm_choice):
         fitting_alg = fitting_algorithms[algorithm_choice-1]
         return(fitting_alg(self.fit_model,
                            self.fitting_parameters,
@@ -97,35 +97,37 @@ class Problem():
 
 
 
-    def generateData(self):
-        self.data=self.data_model.generateData()
+    def generate_Data(self):
+        return(self.data_model.generate_Data())
     
 
 
-    def sampleInformation(self):
+    def sample_Information(self):
         if((not("Resonance Levels"          in self.interaction_information)) and   
                ("Resonance Distance"        in self.interaction_information)  and
                ("Resonance Average Spacing" in self.interaction_information)):
-            assert "Number Levels"   in self.interaction_information, "Information Gen Failed: Number Levels not provided in interaction_information"
-            levels=np.zeros(self.interaction_information["Number Levels"])
-            levels[0]=self.interaction_information["Resonance Distance"]
-            for idx in range(1,self.interaction_information["Number Levels"]):
-                levels[idx]=distributions.sample_wigner_invCDF(1)*self.interaction_information["Resonance Average Spacing"]+levels[idx-1]
-            self.interaction_information["Resonance Levels"]=levels
+            assert "Number Levels"          in self.interaction_information, "Information Gen Failed: Number Levels not provided in interaction_information"
 
-        if((not("Energy Grid"        in self.model_information)) and
-               ("Energy Grid Size"   in self.model_information)  and
-               ("Energy Grid Buffer" in self.model_information)):
+            levels    = np.zeros(self.interaction_information["Number Levels"])
+            levels[0] = self.interaction_information["Resonance Distance"]
+            for idx in range(1, self.interaction_information["Number Levels"]):
+                levels[idx] = Distributions.sample_Wigner_InvCDF(1)*self.interaction_information["Resonance Average Spacing"] + levels[idx-1]
+            self.interaction_information["Resonance Levels"] = levels
+
+        if((not("Energy Grid"          in self.model_information)) and
+               ("Energy Grid Size"     in self.model_information)  and
+               ("Energy Grid Buffer"   in self.model_information)):
            assert "Resonance Levels"   in self.interaction_information, "Information Gen Failed: Resonance Levels not provided in interaction_information"
-           self.model_information["Energy Grid"]=np.linspace(self.interaction_information["Resonance Levels"][0]  - self.model_information["Energy Grid Buffer"],
-                                                             self.interaction_information["Resonance Levels"][-1] + self.model_information["Energy Grid Buffer"],
-                                                             self.model_information["Energy Grid Size"])
+
+           self.model_information["Energy Grid"] = np.linspace(self.interaction_information["Resonance Levels"][0]  - self.model_information["Energy Grid Buffer"],
+                                                               self.interaction_information["Resonance Levels"][-1] + self.model_information["Energy Grid Buffer"],
+                                                               self.model_information["Energy Grid Size"])
     
 
 
-    def getInitialGuess(self):
-        true_matrix      = self.data_model.math_model.get_gamma_matrix()
-        best_guess       = np.zeros(self.interaction_information["Number Levels"]*2)
+    def get_Initial_Guess(self):
+        true_matrix = self.data_model.math_model.get_Gamma_Matrix()
+        best_guess  = np.zeros(self.interaction_information["Number Levels"]*2)
 
         best_guess[:self.interaction_information["Number Levels"]]  = true_matrix[:,0]
         best_guess[self.interaction_information["Number Levels"]:]  = np.ones(self.interaction_information["Number Levels"])*self.interaction_information["Gamma Variance"]

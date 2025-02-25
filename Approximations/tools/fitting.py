@@ -108,7 +108,7 @@ def gaussNewtonAlgorithm(initial_values,
     if debug: print("")
     return(new_values)
 
-def gradientDescent(evaluation_model,
+def gradient_Descent(evaluation_model,
                     parameters,
                     debug):
     # Required Parameters:
@@ -123,9 +123,9 @@ def gradientDescent(evaluation_model,
     #   evaluate
     #   calcGradient
 
-    evaluator=evaluation_model.evaluate
-    calculator=evaluation_model.calcGradient
-    def fittingFunc(initial_vector,data):
+    evaluator  = evaluation_model.evaluate
+    calculator = evaluation_model.calc_Gradient
+    def fitting_Func(initial_vector,data):
         vector=initial_vector
         previous_result=evaluator(vector,data)
         converged=False
@@ -203,9 +203,9 @@ def gradientDescent(evaluation_model,
         if debug==2: print("=============================")
         if debug>1: print("")
         return(vector,k+1)
-    return(fittingFunc)
+    return(fitting_Func)
 
-def levenbergMarquardt(evaluation_model,
+def levenberg_Marquardt(evaluation_model,
                        parameters,
                        debug):
     # Required Parameters:
@@ -220,9 +220,9 @@ def levenbergMarquardt(evaluation_model,
     #   evaluate
     #   calcGradientAndHessian
 
-    evaluator=evaluation_model.evaluate
-    calculator=evaluation_model.calcGradientAndHessian
-    def fittingFunc(initial_vector,data):
+    evaluator  = evaluation_model.evaluate
+    calculator = evaluation_model.calc_Gradient_And_Hessian
+    def fitting_Func(initial_vector,data):
         #Initialization
         v_length=len(initial_vector)
         priority=parameters["Initial Priority"]
@@ -250,4 +250,4 @@ def levenbergMarquardt(evaluation_model,
                     break
                 priority=np.min([priority*parameters["Priority Multiplier"],parameters["Priority Maximum"]])
         return(vector,iteration)
-    return(fittingFunc)
+    return(fitting_Func)

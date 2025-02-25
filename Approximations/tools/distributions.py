@@ -1,6 +1,6 @@
 import numpy as np
 
-def sample_wigner_invCDF(N_samples:int,
+def sample_Wigner_InvCDF(N_samples:int,
                          rng=None, seed=None):
     """
     Sample the wigner distribution using inverse CDF sampling.
