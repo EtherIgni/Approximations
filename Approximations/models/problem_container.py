@@ -1,4 +1,5 @@
 import numpy as np
+from copy import copy
 
 from   Approximations.models.data_models.R_matrix_full        import RMatrixFull
 from   Approximations.models.fitting_models.reich_moore_model import ReichMoore
@@ -58,7 +59,7 @@ class Problem():
         #                              2: Built in Levenburg-Marquardt
 
         self.molecular_information   = molecular_information
-        self.interaction_information = interaction_information
+        self.interaction_information = copy(interaction_information)
         self.model_information       = model_information
         self.fitting_parameters      = fitting_parameters
         self.selections              = selections
@@ -107,7 +108,7 @@ class Problem():
                ("Resonance Distance"        in self.interaction_information)  and
                ("Resonance Average Spacing" in self.interaction_information)):
             assert "Number Levels"          in self.interaction_information, "Information Gen Failed: Number Levels not provided in interaction_information"
-
+            
             levels    = np.zeros(self.interaction_information["Number Levels"])
             levels[0] = self.interaction_information["Resonance Distance"]
             for idx in range(1, self.interaction_information["Number Levels"]):

@@ -98,7 +98,7 @@ class RMatrixFull():
                 running_sum = running_sum+self.math_model.get_Capture_Channels()[i].calc_penetrability(interaction_information["Separation Energy"]-excitation)
             gamma_std         = np.sqrt(interaction_information["Gamma Variance"]/running_sum)
             gamma_matrix[:,i+1] = np.random.normal(0, gamma_std, self.num_levels)
-        
+        self.gamma_mat=gamma_matrix
         self.math_model.set_Gamma_Matrix(gamma_matrix)
     
 

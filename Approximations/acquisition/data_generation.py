@@ -75,7 +75,7 @@ def run_acquisition(batch_id,
                         text=text+str(problem.data_model.math_model.get_capture_channels()[level].calc_penetrability(interaction_information["Separation Energy"]-excitation))+" "
                 text=text+"| "
                 for row in range(num_levels):
-                    for col in range(num_levels+1):
+                    for col in range(num_channels):
                         text=text+str(true_gamma_matrix[row,col])+" "
                 text=text[:-1]+"\n"
                 text_file.write(text)
