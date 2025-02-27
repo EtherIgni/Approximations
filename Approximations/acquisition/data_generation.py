@@ -176,7 +176,7 @@ all_excited_states      = np.array([0,
                                     float(301.622E3),
                                     float(337.54E3)])
 
-for id in range(1,len(all_excited_states)):
+for id in [6]:
     
     interaction_information["Excited States"]=all_excited_states[:id+1]
     run_acquisition(batch_id=1,

@@ -7,14 +7,14 @@ file_path = "Approximations/acquisition/data_generation.py"
 restart_timer = 2
 def start_script():
     try:
-        # Make sure 'python' command is available
-        run("python "+file_path, check=True) 
+        print("Running Script")
+        run("python "+file_path, check=True)
     except:
-        # Script crashed, lets restart it!
+        print("Scripted Crashed ,Restarting...")
         handle_crash()
 
 def handle_crash():
-    sleep(restart_timer)  # Restarts the script after 2 seconds
+    sleep(restart_timer)
     start_script()
 
 start_script()
