@@ -139,8 +139,8 @@ def run_acquisition(batch_id,
 
 
 molecular_information   = {"Incident Name":     "n",
-                           "Incident Nucleons":  0,
-                           "Incident Protons":   1,
+                           "Incident Nucleons":  1,
+                           "Incident Protons":   0,
                            "Departing Name":     "g",
                            "Departing Nucleons": 0,
                            "Departing Protons":  0,
@@ -155,8 +155,8 @@ interaction_information = {"Separation Energy":         float(7.5767E6),
                            "Resonance Distance":        600,
                            "Resonance Average Spacing": 8}
 
-model_information       = {"Energy Grid Size":   1001,
-                           "Energy Grid Buffer": 20}
+model_information       = {"Energy Grid Size":   2001,
+                           "Energy Grid Buffer": 2}
 
 fitting_parameters      = {"Iteration Limit":        1000,
                            "Improvement Threshold":  0.1,
