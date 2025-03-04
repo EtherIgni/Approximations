@@ -61,8 +61,8 @@ def run_acquisition(batch_id,
         try:
             with open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/model data.txt", "a") as text_file:
                 #Gets Information about generated data model 
-                resonance_energies = problem.data_model.math_model.get_resonance_energies()
-                true_gamma_matrix  = problem.data_model.math_model.get_gamma_matrix()
+                resonance_energies = problem.data_model.math_model.get_Resonance_Energies()
+                true_gamma_matrix  = problem.data_model.math_model.get_Gamma_Matrix()
 
                 #Record Information
                 text=str(run_id)+" "+str(attempt)+" | "
@@ -70,11 +70,11 @@ def run_acquisition(batch_id,
                     text=text+str(resonance_energies[idx]-resonance_energies[idx-1])+" "
                 text=text+"| "
                 for excitation in interaction_information["Excited States"]:
-                    text=text+str(problem.data_model.math_model.get_elastic_channel().calc_penetrability(interaction_information["Separation Energy"]-excitation))+" "
+                    text=text+str(problem.data_model.math_model.get_Elastic_Channel().calc_penetrability(interaction_information["Separation Energy"]-excitation))+" "
                 text=text+"| "
                 for level in range(num_levels):
                     for excitation in interaction_information["Excited States"]:
-                        text=text+str(problem.data_model.math_model.get_capture_channels()[level].calc_penetrability(interaction_information["Separation Energy"]-excitation))+" "
+                        text=text+str(problem.data_model.math_model.get_Capture_Channels()[level].calc_penetrability(interaction_information["Separation Energy"]-excitation))+" "
                 text=text+"| "
                 for row in range(num_levels):
                     for col in range(num_channels):
@@ -90,9 +90,9 @@ def run_acquisition(batch_id,
 
 
         try:
-            initial_vector=problem.getInitialGuess()
+            initial_vector=problem.get_Initial_Guess()
             problem_data=problem.data
-            best_fit_vector,iterations=problem.fit_call(initial_vector,problem_data)
+            best_fit_vector,iterations=problem.fit_Call(initial_vector,problem_data)
             result=problem.fit_model.evaluate(best_fit_vector,problem_data)
         except Exception as e:
             try:
