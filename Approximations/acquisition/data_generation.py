@@ -179,7 +179,7 @@ all_excited_states      = np.array([0,
 for id in [6]:
     
     interaction_information["Excited States"]=all_excited_states[:id+1]
-    run_acquisition(batch_id=1,
+    run_acquisition(batch_id=6,
                     number_attempts=10000,
                     molecular_information=molecular_information,
                     interaction_information=interaction_information,
