@@ -27,8 +27,10 @@ def run_acquisition(batch_id,
         else:
             run_id     = 1
     except:
-        os.mkdir(file_path+"/run_data/"+file_name)
-        os.mkdir(file_path+"/run_data/"+file_name+"/batch "+str(batch_id))
+        if(not(os.path.exists(file_path+"/run_data/"+file_name))):
+            os.mkdir(file_path+"/run_data/"+file_name)
+            if(not(os.path.exists(file_path+"/run_data/"+file_name))):
+                os.mkdir(file_path+"/run_data/"+file_name+"/batch "+str(batch_id))
         open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/model data.txt", 'w')
         open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/successful run data.txt", 'w')
         open(file_path+"/run_data/"+file_name+"/batch "+str(batch_id)+"/failed run data.txt", 'w')
