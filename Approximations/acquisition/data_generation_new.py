@@ -1,4 +1,4 @@
-file_path            = "Approximations/run_data/breaking/"
+file_path            = "/run_data/breaking/"
 file_name            = "random_even_100_channels.txt"
 num_channels_for_run = 101
 num_iterations       = 10000
@@ -7,9 +7,11 @@ num_iterations       = 10000
 
 import numpy     as np
 from   tqdm  import tqdm
+import os
 
 from Approximations.models.problem_container import Problem
 
+file_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + file_path
 
 
 
