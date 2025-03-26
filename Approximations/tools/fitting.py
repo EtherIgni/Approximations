@@ -1,6 +1,7 @@
-import numpy as np
+import numpy              as np
 import math
-import matplotlib.pyplot as plt
+import matplotlib.pyplot  as plt
+from   scipy.optimize import least_squares, curve_fit
 
 def coordinate_descent(initial_values,steps,evaluator,max_num_iterations,debug):
     num_rows=initial_values.shape[0]
@@ -251,3 +252,55 @@ def levenberg_Marquardt(evaluation_model,
                 priority=np.min([priority*parameters["Priority Multiplier"],parameters["Priority Maximum"]])
         return(vector,iteration)
     return(fitting_Func)
+
+def scipy_Method(evaluation_model,
+                 parameters,
+                 debug):
+    # Required Parameters:
+    #
+    # Required Model Functionality:
+    #   generate_Data
+    def fitting_Func(initial_vector,
+                     data):
+        
+        def wrapper_func(gamma_vector):
+            iteration_data = evaluation_model.generate_Data(gamma_vector)
+            residuals      = (data-iteration_data).flatten()
+            return(residuals)
+        
+        results = least_squares(wrapper_func,initial_vector)
+        
+        best_fit = results.x
+        
+        return(best_fit)
+    return(fitting_Func)
+
+# def scipy_Method(evaluation_model,
+#                  parameters,
+#                  debug):
+#     # Required Parameters:
+#     #   
+#     #
+#     # Required Model Functionality:
+#     #   generate_Data
+#     energy_long=np.concat((evaluation_model.math_model.energy_grid, evaluation_model.math_model.energy_grid))
+#     def fitting_Func(initial_vector,
+#                      data):
+#         true_data=data.flatten()
+        
+#         def wrapper_func(energy_long,
+#                          gamma_1,
+#                          gamma_2,
+#                          gamma_3,
+#                          gamma_4):
+#             gamma_vector   = np.array([gamma_1, gamma_2, gamma_3, gamma_4])
+#             iteration_data = evaluation_model.generate_Data(gamma_vector)
+#             iteration_data = iteration_data.flatten()
+#             return(iteration_data)
+        
+#         fitted_params, ___ = curve_fit(wrapper_func, energy_long, true_data)
+        
+#         best_fit = fitted_params
+        
+#         return(best_fit)
+#     return(fitting_Func)

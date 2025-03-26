@@ -3,8 +3,7 @@ from copy import copy
 
 from   Approximations.models.data_models.R_matrix_full        import RMatrixFull
 from   Approximations.models.fitting_models.reich_moore_model import ReichMoore
-from   Approximations.tools.fitting                           import gradient_Descent
-from   Approximations.tools.fitting                           import levenberg_Marquardt
+from   Approximations.tools.fitting                           import scipy_Method
 import Approximations.tools.distributions                     as     Distributions
 
 
@@ -14,8 +13,7 @@ import Approximations.tools.distributions                     as     Distributio
 class Problem():
     data_model_formats = [RMatrixFull]
     fit_model_formats  = [ReichMoore]
-    fitting_algorithms = [gradient_Descent,
-                          levenberg_Marquardt]
+    fitting_algorithms = [scipy_Method]
 
     def __init__(self,
                  molecular_information,
@@ -29,13 +27,16 @@ class Problem():
         #                          Departing Name                _
         #                          Departing Nucleons            #
         #                          Departing Protons             #
-        #                          Compound Name                 _
-        #                          Compound Nucleons             #
-        #                          Compound Protons              #
+        #                          Target Name                   _
+        #                          Target Nucleons               #
+        #                          Target Protons                #
         #
         # interaction_information: Separation Energy             ev
-        #                          Gamma Variance                ev
-        #                          Neutron Variance              ev
+        #                          Elastic Variance              ev
+        #                          Elastic Radius                ev
+        #                          Capture Variance              ev
+        #                          Capture Radius                ev
+        #                          Capture Ell                   ev
         #                          Excited States                ev
         #                          Number Levels                 #
         #                          Resonance Levels              ev
@@ -55,14 +56,13 @@ class Problem():
         #                          Fit Model
         #                              1: Reich Moore
         #                          Fit Method
-        #                              1: Built in gradient descent
-        #                              2: Built in Levenburg-Marquardt
+        #                              1: Least squares method from SciPy
 
-        self.molecular_information   = molecular_information
+        self.molecular_information   = copy(molecular_information)
         self.interaction_information = copy(interaction_information)
-        self.model_information       = model_information
-        self.fitting_parameters      = fitting_parameters
-        self.selections              = selections
+        self.model_information       = copy(model_information)
+        self.fitting_parameters      = copy(fitting_parameters)
+        self.selections              = copy(selections)
 
         self.sample_Information()
 
@@ -131,6 +131,6 @@ class Problem():
         best_guess  = np.zeros(self.interaction_information["Number Levels"]*2)
 
         best_guess[:self.interaction_information["Number Levels"]]  = true_matrix[:,0]
-        best_guess[self.interaction_information["Number Levels"]:]  = np.ones(self.interaction_information["Number Levels"])*self.interaction_information["Gamma Variance"]
+        best_guess[self.interaction_information["Number Levels"]:]  = np.diag(true_matrix[:,:1])
         
         return(best_guess)

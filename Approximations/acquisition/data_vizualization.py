@@ -1,10 +1,10 @@
-batch_path                    = "/home/aaron/Desktop/batch 3"
-output_path                   = "/home/aaron/Desktop/batch 3"
+batch_path                    = "/home/aaron/Desktop/batch 6"
+output_path                   = "/home/aaron/Desktop/batch 6"
 cut_data                      = False
 cut_off_value                 = 1000
-show_ignored_values           = True
-show_failed_values            = True
-show_combined_values          = True
+show_ignored_values           = False
+show_failed_values            = False
+show_combined_values          = False
 target_for_penetrability_test = float(32E-3)
 
 
@@ -91,7 +91,7 @@ for line in model_data_lines:
     penetrability_matrix[:,0]  = penetrability_neutron_data
     penetrability_matrix[:,1:] = np.reshape(penetrability_gamma_data, (penetrability_matrix.shape[0], penetrability_matrix.shape[1]-1))
     model_penetrability_data.append(penetrability_matrix)
-    gamma_matrix               = np.reshape(np.array(data[4].split(" ")[1:], float), (2,3))
+    gamma_matrix               = np.reshape(np.array(data[4].split(" ")[1:], float), (2,6))
     model_true_gamma_data.append(gamma_matrix)
 
 model_run_ids               = np.array(model_run_ids,float)
@@ -160,9 +160,6 @@ selected_resonance_energy_data=np.take_along_axis(successful_resonance_energy_da
 selected_penetrability_data=np.take_along_axis(successful_penetrability_data, cut_indices[:,:,np.newaxis], axis=0)
 selected_true_gamma_data=np.take_along_axis(successful_true_gamma_data, cut_indices[:,:,np.newaxis], axis=0)
 
-print(np.max(selected_true_gamma_data[:,-1,-1]),np.max(successful_true_gamma_data[:,-1,-1]))
-print(selected_true_gamma_data.shape,successful_true_gamma_data.shape)
-
 
 
 
@@ -202,45 +199,45 @@ plt.savefig(output_path+"/Resonance Energy Gap Plot.png")
 
 
 
-#Penetrability Plotting
-num_bins=50
-val_1=selected_penetrability_data.shape[2]
-fig,ax=plt.subplots(1,val_1)
-fig.set_figheight(5)
-fig.set_figwidth(val_1*7)
-fig.suptitle("Resonance Energy Gap Distributions")
+# #Penetrability Plotting
+# num_bins=50
+# val_1=selected_penetrability_data.shape[2]
+# fig,ax=plt.subplots(1,val_1)
+# fig.set_figheight(5)
+# fig.set_figwidth(val_1*7)
+# fig.suptitle("Resonance Energy Gap Distributions")
 
-for a in range(val_1):
-    axis=ax[a]
-    # try:
-    if(show_ignored_values):
-        ignored_data=np.sum((ignored_penetrability_data*np.power(ignored_true_gamma_data,2)*np.sign(ignored_true_gamma_data))[:,:,a],1)
-        ignored_std=np.std(ignored_data)
-        ignored_bins=np.linspace(-3*ignored_std,3*ignored_std,num_bins)
-        axis.hist(ignored_data,bins=ignored_bins,color="black",alpha=0.5,density=True,label="Ignored Runs")
-    if(show_failed_values):
-        failed_data=np.sum((failed_penetrability_data*np.power(failed_true_gamma_data,2)*np.sign(failed_true_gamma_data))[:,:,a],1)
-        failed_std=np.std(failed_data)
-        failed_bins=np.linspace(-3*failed_std,3*failed_std,num_bins)
-        axis.hist(failed_data,bins=failed_bins,color="firebrick",alpha=0.5,density=True,label="Failed Runs")
-    if(show_combined_values):
-        successful_data=np.sum((successful_penetrability_data*np.power(successful_true_gamma_data,2)*np.sign(successful_true_gamma_data))[:,:,a],1)
-        successful_std=np.std(successful_data)
-        successful_bins=np.linspace(-3*successful_std,3*successful_std,num_bins)
-        axis.hist(successful_data,bins=successful_bins,color="sienna",alpha=0.5,density=True,label="Combined Runs")
-    selected_data=np.sum((selected_penetrability_data*np.power(selected_true_gamma_data,2)*np.sign(selected_true_gamma_data))[:,:,a],1)
-    selected_std=np.std(selected_data)
-    selected_bins=np.linspace(-3*selected_std,3*selected_std,num_bins)
-    axis.hist(selected_data,bins=selected_bins,color="orange",alpha=0.75,density=True,label="Selected Runs")
-    axis.text(0.05, 0.93,'Variance: {br:.6f}'.format(br=selected_std**2),style='italic',transform=axis.transAxes,va="top",
-                bbox={'facecolor':'lightgrey','alpha':1,'pad':10})
-    axis.set_ylabel("Relative Density")
-    axis.set_xlabel("Channel Variance")
-    if(show_ignored_values | show_failed_values):
-            axis.legend()
-    # except:
-    #     fig.delaxes(axis)
-plt.savefig(output_path+"/Penetrability Plot.png")
+# for a in range(val_1):
+#     axis=ax[a]
+#     # try:
+#     if(show_ignored_values):
+#         ignored_data=np.sum((ignored_penetrability_data*np.power(ignored_true_gamma_data,2)*np.sign(ignored_true_gamma_data))[:,:,a],1)
+#         ignored_std=np.std(ignored_data)
+#         ignored_bins=np.linspace(-3*ignored_std,3*ignored_std,num_bins)
+#         axis.hist(ignored_data,bins=ignored_bins,color="black",alpha=0.5,density=True,label="Ignored Runs")
+#     if(show_failed_values): 
+#         failed_data=np.sum((failed_penetrability_data*np.power(failed_true_gamma_data,2)*np.sign(failed_true_gamma_data))[:,:,a],1)
+#         failed_std=np.std(failed_data)
+#         failed_bins=np.linspace(-3*failed_std,3*failed_std,num_bins)
+#         axis.hist(failed_data,bins=failed_bins,color="firebrick",alpha=0.5,density=True,label="Failed Runs")
+#     if(show_combined_values):
+#         successful_data=np.sum((successful_penetrability_data*np.power(successful_true_gamma_data,2)*np.sign(successful_true_gamma_data))[:,:,a],1)
+#         successful_std=np.std(successful_data)
+#         successful_bins=np.linspace(-3*successful_std,3*successful_std,num_bins)
+#         axis.hist(successful_data,bins=successful_bins,color="sienna",alpha=0.5,density=True,label="Combined Runs")
+#     selected_data=np.sum((selected_penetrability_data*np.power(selected_true_gamma_data,2)*np.sign(selected_true_gamma_data))[:,:,a],1)
+#     selected_std=np.std(selected_data)
+#     selected_bins=np.linspace(-3*selected_std,3*selected_std,num_bins)
+#     axis.hist(selected_data,bins=selected_bins,color="orange",alpha=0.75,density=True,label="Selected Runs")
+#     axis.text(0.05, 0.93,'Variance: {br:.6f}'.format(br=selected_std**2),style='italic',transform=axis.transAxes,va="top",
+#                 bbox={'facecolor':'lightgrey','alpha':1,'pad':10})
+#     axis.set_ylabel("Relative Density")
+#     axis.set_xlabel("Channel Variance")
+#     if(show_ignored_values | show_failed_values):
+#             axis.legend()
+#     # except:
+#     #     fig.delaxes(axis)
+# plt.savefig(output_path+"/Penetrability Plot.png")
 
 
 
@@ -266,7 +263,7 @@ for a in range(val_1):
         try:
             selected_data=selected_true_gamma_data[:,a,b]
             selected_std=np.std(selected_data)
-            variances[a,b]=selected_std**2
+            variance=selected_std**2
             selected_bins=np.linspace(-3*selected_std,3*selected_std,num_bins)
             x=np.linspace(selected_bins[0],selected_bins[-1],200)
             gauss=(1/np.sqrt(selected_std*2*np.pi))*np.exp(-0.5*(np.power(x,2)/np.power(selected_std,2)))
@@ -295,14 +292,14 @@ for a in range(val_1):
             axis.set_ylabel("Relative Density")
             axis.set_xlabel("Gamma Matrix Value")
             axis.text(0.05, 0.93,'Variance: {br:.6f}'.format(br=selected_std**2),style='italic',transform=axis.transAxes,va="top",
-                      bbox={'facecolor':'lightgrey','alpha':1,'pad':10})
+                        bbox={'facecolor':'lightgrey','alpha':1,'pad':10})
             if(show_ignored_values | show_failed_values):
                 axis.legend()
         except:
             fig.delaxes(axis)
 plt.savefig(output_path+"/True Gamma Matrix Values Plot.png")
-penetrability_test_result=np.mean(np.sum(variances*average_penetrability,0)[1:])
-print("Penetrability test relative distance: {:.3f}".format(np.abs(penetrability_test_result-target_for_penetrability_test)/target_for_penetrability_test))
+# penetrability_test_result=np.mean(np.sum(variances*average_penetrability,0)[1:])
+# print("Penetrability test relative distance: {:.3f}".format(np.abs(penetrability_test_result-target_for_penetrability_test)/target_for_penetrability_test))
 
 
 
@@ -390,7 +387,14 @@ for a in range(val_1):
             fig.delaxes(axis)
 plt.savefig(output_path+"/Final Gamma Matrix Values Plot.png")
 
+val_1=np.abs(selected_final_gm_matrix_data[:,-1,-1])
+val_2=(val_1<0.1).astype(int)
+print(val_2[val_2==1].size)
 
+plt.close("all")
+plt.plot(val_1)
+plt.plot(val_2-1)
+plt.show()
 
 # #Final Gamma Matrix Squared Plotting
 # num_bins=50
