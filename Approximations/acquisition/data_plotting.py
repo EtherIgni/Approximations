@@ -9,9 +9,9 @@ num_levels   = 2
 num_channels = 3
 num_bins     = 500
 
-file_path="Approximations/run_data/breaking/random_even_6_channels.txt"
+file_path="Approximations/run_data/breaking/random_split_100_channels.txt"
 plot_path="Approximations/images/generation results/breaking/"
-plot_title="random_even_6_channels.png"
+plot_title="random_split_100_channels.png"
 
 
 with open(file_path,"r") as file:
@@ -48,6 +48,7 @@ for idx in range(num_levels*2):
         b = a+1
     axis         = axes[a,b]
     data         = squared_gamma_data[:,a,b]
+    print(np.min(data),np.max(data))
     counts, bins = np.histogram(data, bins=num_bins, density=True)
     axis.hist(bins[:-1], bins, weights=counts,color="red",label="Data")
     fitted_params=chi2.fit(squared_gamma_data[:,a,b],floc=0)

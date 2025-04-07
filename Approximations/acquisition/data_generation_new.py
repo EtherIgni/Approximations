@@ -1,5 +1,5 @@
 file_path            = "/run_data/breaking/"
-file_name            = "random_split_100_channels.txt"
+file_name            = "random_low_100_channels.txt"
 num_channels_for_run = 101
 num_iterations       = 10000
 
@@ -51,8 +51,7 @@ selections              = {"Data Model": 1,
                            "Fit Model":  1,
                            "Fit Method": 1}
 
-interaction_information["Excited States"] = np.sort(np.concat(((1-np.random.rand(int((num_channels_for_run-1)/2)))*interaction_information["Separation Energy"]*0.1,
-                                                       np.random.rand(int((num_channels_for_run-1)/2))*interaction_information["Separation Energy"]*0.1+interaction_information["Separation Energy"]*0.9)))
+interaction_information["Excited States"] = np.sort(((1-np.random.rand(int(num_channels_for_run-1)))*interaction_information["Separation Energy"]*0.1))
 
 
 
