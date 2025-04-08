@@ -34,8 +34,8 @@ interaction_information = {"Separation Energy":         float(7.5767E6),#float(1
                            "Number Levels":             2,
                            "Resonance Distance":        600,
                            "Resonance Average Spacing": 500,
-                           "Resonance Levels":          [600,
-                                                         608]}
+                           "Resonance Levels":          [2000,
+                                                         2008]}
 
 model_information       = {"Energy Grid Size":   2000,
                            "Energy Grid Buffer": 2}
@@ -51,7 +51,7 @@ selections              = {"Data Model": 1,
                            "Fit Model":  1,
                            "Fit Method": 1}
 
-interaction_information["Excited States"] = np.sort(((1-np.random.rand(int(num_channels_for_run-1)))*interaction_information["Separation Energy"]*0.1))
+interaction_information["Excited States"] = np.sort(((1-np.random.rand(int(num_channels_for_run-1)))*interaction_information["Separation Energy"]))
 
 
 

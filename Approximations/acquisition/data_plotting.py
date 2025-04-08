@@ -25,10 +25,11 @@ with open(file_path,"r") as file:
 
 
 
-fitted_gamma_data=fitted_gamma_data[np.abs(fitted_gamma_data[:,0,0])<1.5]
-fitted_gamma_data=fitted_gamma_data[np.abs(fitted_gamma_data[:,1,0])<1.5]
-fitted_gamma_data=fitted_gamma_data[np.abs(fitted_gamma_data[:,0,1])<0.2]
-fitted_gamma_data=fitted_gamma_data[np.abs(fitted_gamma_data[:,1,2])<0.2]
+# fitted_gamma_data=fitted_gamma_data[np.abs(fitted_gamma_data[:,0,0])<1.5]
+# fitted_gamma_data=fitted_gamma_data[np.abs(fitted_gamma_data[:,1,0])<1.5]
+fitted_gamma_data=fitted_gamma_data[np.abs(fitted_gamma_data[:,0,1])>np.sqrt(0.02)]
+# fitted_gamma_data=fitted_gamma_data[np.abs(fitted_gamma_data[:,0,1])<np.sqrt(0.2)]
+fitted_gamma_data=fitted_gamma_data[np.abs(fitted_gamma_data[:,1,2])<np.sqrt(0.4)]
 
 squared_gamma_data=np.power(fitted_gamma_data,2)
 
