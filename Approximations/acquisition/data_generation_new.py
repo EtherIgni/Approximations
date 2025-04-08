@@ -1,5 +1,5 @@
 file_path            = "/run_data/breaking/"
-file_name            = "random_low_100_channels.txt"
+file_name            = "random_low_100_high_res.txt"
 num_channels_for_run = 101
 num_iterations       = 10000
 
