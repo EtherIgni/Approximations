@@ -42,19 +42,19 @@ def run_acquisition(batch_id,
     Start_time = time.time()
     for attempt in range(1, number_attempts):
         failure_text = "Passed"
-        try:
-            problem      = Problem(molecular_information,
-                                    interaction_information,
-                                    model_information,
-                                    fitting_parameters,
-                                    selections)
-            num_levels   = interaction_information["Number Levels"]
-            num_channels = len(interaction_information["Excited States"])
-        except:
-            mins,secs=divmod(int(time.time()-Start_time),60)
-            hrs,mins=divmod(mins,60)
-            print(str(run_id)+"|"+str(attempt),"No Model Generation",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
-            continue
+        # try:
+        problem      = Problem(molecular_information,
+                                interaction_information,
+                                model_information,
+                                fitting_parameters,
+                                selections)
+        num_levels   = interaction_information["Number Levels"]
+        num_channels = len(interaction_information["Excited States"])
+        # except:
+        #     mins,secs=divmod(int(time.time()-Start_time),60)
+        #     hrs,mins=divmod(mins,60)
+        #     print(str(run_id)+"|"+str(attempt),"No Model Generation",'{:d}:{:02d}:{:02d}'.format(hrs,mins,secs))
+        #     continue
 
 
 
@@ -146,9 +146,9 @@ molecular_information   = {"Incident Name":     "n",
                            "Departing Name":     "g",
                            "Departing Nucleons": 0,
                            "Departing Protons":  0,
-                           "Compound Name":      "181Ta",
-                           "Compound Nucleons":  181,
-                           "Compound Protons":   71}
+                           "Target Name":        "Ta181",
+                           "Target Nucleons":    181,
+                           "Target Protons":     71}
 
 interaction_information = {"Separation Energy":         float(7.5767E6),
                            "Gamma Variance":            float(32E-3),
@@ -167,7 +167,7 @@ fitting_parameters      = {"Iteration Limit":        1000,
                            "Priority Minimum":       float(10E-8),
                            "Priority Maximum":       float(10E16)}
 
-selections              = {"Data Model": 1,
+selections              = {"Data Model": 2,
                            "Fit Model":  1,
                            "Fit Method": 2}
                 

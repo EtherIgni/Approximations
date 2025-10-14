@@ -2,8 +2,9 @@ import numpy as np
 from copy import copy
 
 from   Approximations.models.data_models.R_matrix_full        import RMatrixFull
+from   Approximations.models.data_models.Syndat               import SyndatData
 from   Approximations.models.fitting_models.reich_moore_model import ReichMoore
-from   Approximations.tools.fitting                           import scipy_Method
+from   Approximations.tools.fitting                           import scipy_Method, scipy_Method_uncertainty
 import Approximations.tools.distributions                     as     Distributions
 
 
@@ -11,9 +12,9 @@ import Approximations.tools.distributions                     as     Distributio
 
 
 class Problem():
-    data_model_formats = [RMatrixFull]
+    data_model_formats = [RMatrixFull,  SyndatData]
     fit_model_formats  = [ReichMoore]
-    fitting_algorithms = [scipy_Method]
+    fitting_algorithms = [scipy_Method, scipy_Method_uncertainty]
 
     def __init__(self,
                  molecular_information,
@@ -53,10 +54,12 @@ class Problem():
         #
         # selections:              Data Model
         #                              1: Complete R-Matrix
+        #                              2: R-Matrix w/ Synthetic Data
         #                          Fit Model
         #                              1: Reich Moore
         #                          Fit Method
         #                              1: Least squares method from SciPy
+        #                              2: Least Squares with Uncertainty
 
         self.molecular_information   = copy(molecular_information)
         self.interaction_information = copy(interaction_information)
@@ -65,6 +68,8 @@ class Problem():
         self.selections              = copy(selections)
 
         self.sample_Information()
+        
+        self.true_gamma_matrix = self.interaction_information["Gamma Matrix"]
 
         self.data_model = self.form_Model(self.data_model_formats,
                                           self.selections["Data Model"])
@@ -104,6 +109,28 @@ class Problem():
 
 
     def sample_Information(self):
+        if((not("Excited States"           in self.interaction_information)) and
+               ("Excitation Model"         in self.interaction_information)  and
+               ("Excitation Limits"        in self.interaction_information)  and
+               ("Number Excitation States" in self.interaction_information)):
+            
+            num_states     = self.interaction_information["Number Excitation States"]
+            excited_states = np.zeros(num_states)
+            
+            if(self.interaction_information["Excitation Model"] == "Flat"):
+                excited_states[1:] = np.random.rand(num_states-1)*self.interaction_information["Excitation Limits"][0]
+                
+            if(self.interaction_information["Excitation Model"] == "Bimodal"):
+                mode_cut = int(np.floor((num_states-1)/2))
+                limits   = self.interaction_information["Excitation Limits"]
+                
+                excited_states[1:mode_cut+1] = np.random.rand(mode_cut)*limits[0]
+                excited_states[mode_cut+1:]  = np.random.rand(num_states-1-mode_cut)*(limits[2]-limits[1])+limits[1]
+            
+            excited_states = np.sort(excited_states)
+                
+            self.interaction_information["Excited States"] = excited_states
+                
         if((not("Resonance Levels"          in self.interaction_information)) and   
                ("Resonance Distance"        in self.interaction_information)  and
                ("Resonance Average Spacing" in self.interaction_information)):
@@ -123,14 +150,23 @@ class Problem():
            self.model_information["Energy Grid"] = np.linspace(self.interaction_information["Resonance Levels"][0]  - self.model_information["Energy Grid Buffer"],
                                                                self.interaction_information["Resonance Levels"][-1] + self.model_information["Energy Grid Buffer"],
                                                                self.model_information["Energy Grid Size"])
+        
+        if((not("Gamma Matrix"        in self.interaction_information))and
+               ("Elastic Variance"    in self.interaction_information)and
+               ("Capture Variance"    in self.interaction_information)):
+            assert "Number Levels"    in self.interaction_information, "Information Gen Failed: Number Levels not provided in interaction_information"
+            assert "Resonance Levels" in self.interaction_information, "Information Gen Failed: Resonance Levels not provided in interaction_information"
+            
+            num_levels                                   = self.interaction_information["Number Levels"]
+            num_channels                                 = len(self.interaction_information["Excited States"])+1
+            
+            gamma_matrix                                 = np.zeros((num_levels, num_channels))
+            gamma_matrix[:,0]                            = np.random.normal(0, self.interaction_information["Elastic Variance"], num_levels)
+            gamma_matrix[:,1:]                           = np.random.normal(0, self.interaction_information["Capture Variance"], num_levels*(num_channels-1)).reshape((num_levels, (num_channels-1)))
+            
+            self.interaction_information["Gamma Matrix"] = gamma_matrix
     
 
 
     def get_Initial_Guess(self):
-        true_matrix = self.data_model.math_model.get_Gamma_Matrix()
-        best_guess  = np.zeros(self.interaction_information["Number Levels"]*2)
-
-        best_guess[:self.interaction_information["Number Levels"]]  = true_matrix[:,0]
-        best_guess[self.interaction_information["Number Levels"]:]  = np.diag(true_matrix[:,:1])
-        
-        return(best_guess)
+        return(self.fit_model.get_Initial_Guess(self.true_gamma_matrix))

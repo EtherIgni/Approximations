@@ -1,0 +1,2 @@
+Expected degrees of freedom: 50
+Fitted degrees of freedom: 0.9108245047029322

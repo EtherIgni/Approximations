@@ -275,6 +275,28 @@ def scipy_Method(evaluation_model,
         return(best_fit)
     return(fitting_Func)
 
+def scipy_Method_uncertainty(evaluation_model,
+                             parameters,
+                             debug):
+    # Required Parameters:
+    #
+    # Required Model Functionality:
+    #   generate_Data
+    def fitting_Func(initial_vector,
+                     data):
+        
+        def wrapper_func(gamma_vector):
+            iteration_data = evaluation_model.generate_Data(gamma_vector)
+            residuals      = (data[:,0]-iteration_data)/data[:,1]
+            return(residuals)
+        
+        results = least_squares(wrapper_func,initial_vector)
+        
+        best_fit = results.x
+        
+        return(best_fit)
+    return(fitting_Func)
+
 # def scipy_Method(evaluation_model,
 #                  parameters,
 #                  debug):

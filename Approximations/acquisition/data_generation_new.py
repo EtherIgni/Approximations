@@ -1,6 +1,6 @@
-file_path            = "/run_data/breaking/"
-file_name            = "random_low_100_high_res.txt"
-num_channels_for_run = 101
+file_path            = "/run_data/syndat/"
+file_name            = "syndat_2_lvl.txt"
+num_channels_for_run = 3
 num_iterations       = 10000
 
 
@@ -25,7 +25,7 @@ molecular_information   = {"Incident Name":     "n",
                            "Target Nucleons":    181,
                            "Target Protons":     71}
 
-interaction_information = {"Separation Energy":         float(7.5767E6),#float(1E6),
+interaction_information = {"Separation Energy":         float(7.5767E6),
                            "Elastic Variance":          float(452.5E-3),
                            "Elastic Radius":            0.2,
                            "Capture Variance":          float(32E-3),
@@ -34,11 +34,12 @@ interaction_information = {"Separation Energy":         float(7.5767E6),#float(1
                            "Number Levels":             2,
                            "Resonance Distance":        600,
                            "Resonance Average Spacing": 500,
-                           "Resonance Levels":          [2000,
-                                                         2008]}
+                           "Resonance Levels":          [215,
+                                                         230]}
 
 model_information       = {"Energy Grid Size":   2000,
-                           "Energy Grid Buffer": 2}
+                           "Energy Grid Buffer": 2,
+                           "Data Format":        "Total"}
 
 fitting_parameters      = {"Iteration Limit":        1000,
                            "Improvement Threshold":  0.1,
@@ -47,11 +48,12 @@ fitting_parameters      = {"Iteration Limit":        1000,
                            "Priority Minimum":       float(10E-8),
                            "Priority Maximum":       float(10E16)}
 
-selections              = {"Data Model": 1,
+selections              = {"Data Model": 2,
                            "Fit Model":  1,
-                           "Fit Method": 1}
+                           "Fit Method": 2}
 
 interaction_information["Excited States"] = np.sort(((1-np.random.rand(int(num_channels_for_run-1)))*interaction_information["Separation Energy"]))
+print(interaction_information["Excited States"])
 
 
 
@@ -68,7 +70,7 @@ for idx in tqdm(range(num_iterations),
     num_levels   = interaction_information["Number Levels"]
     num_channels = num_channels_for_run
     
-    true_gamma = problem.data_model.math_model.get_Gamma_Matrix()
+    true_gamma = problem.data_model.true_gamma_matrix
     
     initial_vector  = problem.get_Initial_Guess()
     problem_data    = problem.data

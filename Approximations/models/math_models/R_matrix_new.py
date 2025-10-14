@@ -63,11 +63,9 @@ class RMInterface():
 
 
 
-    def generate_Gamma_Matrix(self):
-        self.gamma_matrix       = np.zeros((self.num_levels, self.num_channels))
-        self.gamma_matrix[:,0]  = np.random.normal(0, self.elastic_variance, self.num_levels)
-        self.gamma_matrix[:,1:] = np.random.normal(0, self.capture_variance, self.num_levels*(self.num_channels-1)).reshape((self.num_levels, self.num_channels-1))
-        self.gamma_matrix       = self.gamma_matrix.astype(self.data_types[0])
+    def set_Gamma_Matrix(self,
+                         gamma_matrix):
+        self.gamma_matrix       = gamma_matrix.astype(self.data_types[0])
         
     def set_Gamma_Matrix(self, gamma_matrix):
         self.gamma_matrix = gamma_matrix

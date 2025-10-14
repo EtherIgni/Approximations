@@ -26,8 +26,10 @@ class ReichMoore():
         assert "Capture Radius"     in interaction_information, "Model Gen Failed: Capture Radius not provided in interaction_information"
         assert "Capture Ell"        in interaction_information, "Model Gen Failed: Capture Ell not provided in interaction_information"
         assert "Energy Grid"        in model_information,       "Model Gen Failed: Energy Grid not provided in model_information"
+        assert "Data Format"        in model_information,       "Model Gen Failed: Data Format not provided in model_information"
         
         self.init_guess   = {}
+        self.data_format  = model_information["Data Format"]
         self.num_levels   = interaction_information["Number Levels"]
         self.num_channels = self.num_levels+1
         excited_states    = interaction_information["Excited States"][:self.num_levels]
@@ -59,10 +61,21 @@ class ReichMoore():
         self.math_model.set_Gamma_Matrix(gamma_matrix)
         self.math_model.calc_Cross_Sections()
         
-        measures      = np.zeros((self.math_model.energy_length, 2))
-        measures[:,0] = np.sum(self.math_model.XS,1)
-        measures[:,1] = np.sum(self.math_model.XS[:,1:],1)
+        if(self.data_format=="Total and Gamma"):
+            measures      = np.zeros((self.math_model.energy_length, 2))
+            measures[:,0] = np.sum(self.math_model.XS,1)
+            measures[:,1] = np.sum(self.math_model.XS[:,1:],1)
+        else:
+            measures      = np.sum(self.math_model.XS,1)
         return(measures)
+    
+    def get_Initial_Guess(self, true_gamma_matrix):
+        best_guess = np.zeros(self.num_levels*2)
+
+        best_guess[:self.num_levels] = true_gamma_matrix[:,0]
+        best_guess[self.num_levels:] = np.diag(true_gamma_matrix[:,1:])
+        
+        return(best_guess)
 
 
 

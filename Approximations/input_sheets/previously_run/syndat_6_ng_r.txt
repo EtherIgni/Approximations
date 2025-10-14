@@ -1,0 +1,53 @@
+=== Run Meta Data ===
+
+Data Group                : s   : Syndat
+Title                     : s   : non-generated 6 channel rejects
+Number Data Sets          : i   : 2000
+
+=== Molecular Information ===
+
+Incident Name             : s   : n
+Incident Nucleons         : i   : 1
+Incident Protons          : i   : 0
+
+Departing Name            : s   : g
+Departing Nucleons        : i   : 0
+Departing Protons         : i   : 0
+
+Target Name               : s   : Ta181
+Target Nucleons           : i   : 181
+Target Protons            : i   : 71
+
+=== Interaction Information ===
+
+Separation Energy         : f   : 7.5767E6
+
+Elastic Variance          : f   : 452.5E-3
+Elastic Radius            : f   : 0.2
+
+Capture Variance          : f   : 32E-3
+Capture Radius            : f   : 0.2
+Capture Ell               : f   : 0
+
+Number Levels             : i   : 2
+Resonance Distance        : f   : 600
+Resonance Average Spacing : f   : 500
+
+Excited States            : l,f : 0, 1E2, 3E3, 4.5E4, 5E5, 7E6
+
+=== Model Information ===
+
+Energy Grid Size          : i   : 2000
+Energy Grid Buffer        : f   : 10
+
+Data Format               : s   : Total
+
+=== Fitting Parameters ===
+
+=== Selections ===
+
+Data Model                : i   : 1
+Fit Model                 : i   : 1
+Fit Method                : i   : 1
+
+---End---
