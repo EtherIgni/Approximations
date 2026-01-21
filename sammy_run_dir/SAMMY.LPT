@@ -1,0 +1,178 @@
+
+ **********************************************************
+ ***                                                    ***
+ ***    SAMMY Version 8.1.pre-b1 - e8568a76             ***                      
+ ***                                                    ***
+ **********************************************************
+
+ Name of input file: 
+ >>> sammy.inp                                                              <<<
+ Name of parameter file: 
+ >>> SAMMY.PAR                                                              <<<
+ Values used for constants -- Kvendf=1
+   mass of neutron =   1.008664915780000 in amu
+   sqrt(m/2)       =  72.298252185556009
+   sqrt(2m)/hbar   =   0.000219680781008
+   Boltzman        =   0.000086173420000
+   finestructure   =   0.034447600026222 in 1/(amu*F)
+ GENERATE PLOT FILE AUTOMATICALLY                                                
+ Name of experimental data file is: 
+ >>> sammy.dat                                                              <<<
+ Emin and Emax =    213.000       232.000    
+
+
+ *****************************************************************************
+ *****                                                                   *****
+ ***** Title                                                             *****
+ *****                                                                   *****
+ *****************************************************************************
+
+
+ Input quantities from line number 2 are:
+   Alfnm1, Alfnm2 = ##181Ta     ##       Atomic Weight = 180.948030
+   Nepnts Itmax  Icorr  Nxtra  Iptdop Iptwid Ixxchn
+        0      1     50      0      9      5      0
+   Ndigit Idropp Matnum Kkkkza
+        2      2      0      0
+Adjusted  Itmax  Icorr  Nxtra  Iptdop Iptwid Ixxchn
+        0      2     50      0      9      5      0
+   Ndigit Idropp Matnum Kkkkza
+        2      2      0      0
+
+
+ TARGET ELEMENT IS 181Ta     
+ ATOMIC WEIGHT IS 180.948030
+
+
+ *********** Alphanumeric Control Information *********
+
+ TWENTY
+ EV
+ XCT
+ DO NOT SOLVE BAYES EQUATIONS
+ USE MULTIPLE SCATTERING
+ INFINITE SLAB
+ NORMALIZE AS YIELD Rather than cross section
+ BROADENING IS WANTED
+ DO NOT SHIFT RPI RESOLUTION
+ PRINT VARIED INPUT PARAMETERS
+ CHI SQUARED IS WANTED
+ ODF FILE IS WANTED--SAMMY.ODF ,ZERO-TH O
+ 
+ **** end of Alphanumeric Control Information *********
+
+
+
+ Effective Temperature=   0.00000
+    Flight Path=  35.18500 Meters +/-   0.00000/2 Meters
+      Deltae=     0.00000    Deltag=     0.00000
+      Delttt=     0.00000    Elowbr=  0.00000000
+
+ Target Thickness=  0.6717E-01
+
+ **** Data type is <<< CAPTUre              >>> ****
+
+ Spin of incident particle is  0.5
+       #of  #of
+ Group Ent  Exit Jspin Relative  Ispin  g    Chn Lpnt Ishift eL Chspn
+    #  Chn  Chn         Abndnc                 #
+    1    1    0    3.0  1.0000    3.5 0.4375
+                                               1   1   0     0   3.0    
+__________________________
+ 
+DO NOT SHIFT RPI RESOlution function to center
+
+ Number of RPI Resolution parameters is   26
+
+ Total  number of resonances is    2
+ Number of particle channels is    1
+ Number of spin groups is          1
+ Number of flagged parametrs is    0
+ Number of varied parameters is    0
+ Number of L-values is             1
+
+
+
+
+ ***** INITIAL VALUES FOR PARAMETERS                     
+
+
+    RADIUS          TEMPERATURE     THICKNESS
+  8.1270E+00       0.0000E+00       6.7166E-02     
+
+    DELTA-L         DELTA-T-GAUS     DELTA-T-EXP
+  0.0000E+00       0.0000E+00       0.0000E+00     
+
+
+ Total number of RPI parameters = 26
+ RPI Resolution parameters are --
+ Burst full-width-at-half-max (nanosec) =   10.00         
+ time shift tau = taua*exp(-taub*E) + tauc*exp(-taud*E) + taue + tauf*E^taug
+                         taua (nanosec) =   381.0         
+                         taub (per eV ) =  5.8000E-03     
+                         tauc (nanosec) =   323.0         
+                         taud (per eV ) =  9.4000E-02     
+                         taue (nanosec) =   105.0         
+                         tauf (xxxxxxx) =   0.000         
+                         taug (   .   ) =   0.000         
+ Chi-squared width Lambda = Lambda0 + Lambda1*ln(E) + Lamda2*(ln(E))**2
+                                                     + Lambda3*E^Lambda4
+                      Lambda0 (nanosec) =   686.5         
+                      Lambda1 (nanosec) =  -224.9         
+                      Lambda2 (nanosec) =   21.04         
+                      Lambda3 (xxxxxxx) =   0.000         
+                      Lambda4 (   .   ) =   0.000         
+ Multiplier A1 = A1a*exp(-A1b*E) + A1c*exp(-A1d*E) + A1e + A1f*E^A1g
+                      A1a (per nanosec) = -1.1060E-03     
+                      A1b (per eV     ) =  5.8000E-03     
+                      A1c (per nanosec) =  4.7520E-02     
+                      A1d (per eV     ) =   65.08         
+                      A1e (per nanosec) =  1.2640E-03     
+                      A1f (per nanosec) =   0.000         
+                      A1g (     .     ) =   0.000         
+ Parameters for exponentials
+       time shift tzero (nanosec      ) =   940.0         
+                     A2 (dimensionless) =  -65.64         
+                     A3 (per nanosec  ) =  5.0000E-03     
+                     A4 (dimensionless) =  0.3938         
+                     A5 (per nanosec  ) =  8.0000E-04     
+ Channel width parameters (widths in nsec):
+     min Energy     max Energy     Chan Width
+         0.0          infinity     100.0         
+ 
+ Time for energy   213.0     is                   174.3    
+ Time width (total) is                            20.07    
+ Time width associated with burst is             2.0000E-02
+ Time width associated with chi-squared fnct is   1.368    
+ Time width associated wth first exponential is   3.200    
+ Time width associated w/ second exponential is   20.00    
+ Time width associated with detector channel is  5.0050E-02
+ Time for energy   232.0     is                   167.0    
+ Time width (total) is                            20.07    
+ Time width associated with burst is             2.0000E-02
+ Time width associated with chi-squared fnct is   1.372    
+ Time width associated wth first exponential is   3.200    
+ Time width associated w/ second exponential is   20.00    
+ Time width associated with detector channel is  5.0050E-02
+     Emind               Emins               Eminr               Emin
+      196.8145135457      196.8145135457      210.4302914053      213.0000000000
+     Emax                Emaxr               Emaxs               Emaxd
+      232.0000000000      303.0898715103      303.0898715103      303.0898715103
+
+ Energy range of data is from 2.13000E+02 to 2.32000E+02 eV.
+ Number of experimental data points =     500
+
+
+ **  2 resonances have fewer than 9 points across width
+ Number of points in auxiliary grid =    2761
+ Time for energy   213.0     is                   174.3    
+ Time width (total) is                            20.07    
+ Time width associated with burst is             2.0000E-02
+ Time width associated with chi-squared fnct is   1.368    
+ Time width associated wth first exponential is   3.200    
+ Time width associated w/ second exponential is   20.00    
+ Time width associated with detector channel is  5.0050E-02
+
+ CUSTOMARY CHI SQUARED =   499.900    
+ CUSTOMARY CHI SQUARED DIVIDED BY NDAT =  0.999799    
+ Normal finish to SAMMY

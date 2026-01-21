@@ -1,0 +1,22 @@
+Title
+181Ta     180.94803 213.0     232.0          2     
+TWENTY
+EV
+GENERATE PLOT FILE AUTOMATICALLY
+XCT
+DO NOT SOLVE BAYES EQUATIONS
+USE MULTIPLE SCATTERING
+INFINITE SLAB
+NORMALIZE AS YIELD Rather than cross section
+BROADENING IS WANTED
+DO NOT SHIFT RPI RESOLUTION
+
+  0.0       35.185    0.0             
+  8.127     0.067166                       0.00000          
+capture
+  1      1    0  3.0       1.0  3.5
+    1    1    0    0       3.0
+
+RPI C
+BURST 0   10.0      1.0      
+CHANN 0   250.0     100.0     0.8      

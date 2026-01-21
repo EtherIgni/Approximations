@@ -68,12 +68,14 @@ class RMatrixFull():
         return(self.mathModel.XS)
     
     def generate_Data(self):
-        measures       = np.zeros((self.mathModel.energy_length, 2))
         cross_sections = self.get_Cross_Sections()
         
         if(self.data_format == "Total and Gamma"):
+            measures       = np.zeros((self.mathModel.energy_length, 2))
             measures[:,0]  = np.sum(cross_sections,1)
             measures[:,1]  = np.sum(cross_sections[:,1:],1)
+        if(self.data_format == "Full"):
+            measures = cross_sections
         else:
             measures = np.sum(cross_sections,1)
         
