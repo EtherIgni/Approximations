@@ -1,6 +1,6 @@
 === Run Meta Data ===
 
-Data Group                : s   : Imroved_Syndat
+Data Group                : s   : Imroved_Syndat_2
 Title                     : s   : broadened 2 channel complaint
 Number Data Sets          : i   : 1000
 

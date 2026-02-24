@@ -1,5 +1,6 @@
 import os
 from tqdm import tqdm
+from copy import copy
 
 from Approximations.tools.input_output              import input_Sheet_Translator
 from Approximations.acquisition.data_fit_generation import run_iteration
@@ -28,10 +29,10 @@ def run_order(sheet_path):
                 desc="Fitting Data",
                 ncols=80,
                 smoothing=0):
-        outcome, model_text, results_text = run_iteration(molecular_information,
-                                                          interaction_information,
-                                                          model_information,
-                                                          fitting_parameters,
+        outcome, model_text, results_text = run_iteration(copy(molecular_information),
+                                                          copy(interaction_information),
+                                                          copy(model_information),
+                                                          copy(fitting_parameters),
                                                           selections)
         
         if(outcome == "Failed w/o Model Gen"):

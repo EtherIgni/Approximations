@@ -1,0 +1,66 @@
+=== Run Meta Data ===
+
+Data Group                : s   : Imroved_Syndat_6
+Title                     : s   : syndat 6 channel compliant
+Number Data Sets          : i   : 1000
+
+=== Molecular Information ===
+
+Incident Name             : s   : n
+Incident Nucleons         : i   : 1
+Incident Protons          : i   : 0
+Incident Spin             : f   : 0.5
+
+Departing Name            : s   : g
+Departing Nucleons        : i   : 0
+Departing Protons         : i   : 0
+
+Target Name               : s   : Ta181
+Target Nucleons           : i   : 181
+Target Protons            : i   : 71
+Target Spin               : f   : 3.5
+
+=== Interaction Information ===
+
+Separation Energy         : f   : 7.5767E6
+
+Effective Radius          : f   : 8.127E-15
+
+Elastic Variance          : f   : 452.5E-3
+Elastic Radius            : f   : 0.2
+
+Capture Variance          : f   : 32E-3
+Capture Radius            : f   : 0.2
+Capture Ell               : f   : 0
+
+Number Levels             : i   : 2
+Resonance Distance        : f   : 600
+Resonance Average Spacing : f   : 500
+Resonance Levels          : l,f : 215,235
+
+Broadening Temperature    : f   : 300
+Broaden Cross Section     : i   : 1
+
+Excitation Model          : s   : Flat
+Excitation Limits         : l,f : 1E3
+Number Excitation States  : i   : 6
+Excited States            : l,f : 0,10,50,100,500,1000
+
+=== Model Information ===
+
+Energy Grid Size          : i   : 2000
+Energy Grid Buffer        : f   : 10
+
+Data Format               : s   : Total
+
+Fudge Factor              : f   : 0.01
+
+=== Fitting Parameters ===
+
+=== Selections ===
+
+Data Model                : i   : 1
+Fit Model                 : i   : 2
+Fit Method                : i   : 1
+
+---End---

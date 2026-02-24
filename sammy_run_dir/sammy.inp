@@ -9,7 +9,7 @@ CROSS SECTION COVARIance matrix is wanted
 BROADENING IS WANTED
 USE FREE GAS MODEL OF DOPPLER BROADENING
 
-  300.0     35.185    0.0             
+  0.0       35.185    0.0             
   8.127     0.067166                       0.00000          
 capture
   1      1    0  4.0       1.0  3.5
