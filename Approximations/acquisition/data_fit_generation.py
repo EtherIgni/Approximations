@@ -22,9 +22,10 @@ def run_iteration(molecular_information,
                         model_information,
                         fitting_parameters,
                         selections)
-        res_lvls_txt = str(problem.interaction_information["Resonance Levels"])
-        true_gm_text = matrix_to_string(problem.true_gamma_matrix)
-        model_text   = res_lvls_txt + " | " + true_gm_text
+        res_lvls_txt    = matrix_to_string(np.array(problem.interaction_information["Resonance Levels"]))
+        excitations_txt = matrix_to_string(np.array(problem.interaction_information["Excited States"]))
+        true_gm_text    = matrix_to_string(problem.true_gamma_matrix)
+        model_text      = res_lvls_txt + " | " + excitations_txt + " | " + true_gm_text
     except Exception as exc:
         return("Failed w/o Model Gen", "", str(exc))
     

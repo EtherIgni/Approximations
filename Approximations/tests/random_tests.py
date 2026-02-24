@@ -16,4 +16,9 @@ import os
 # with open("Approximations/test_file.txt","w") as file:
 #     file.write("")
 
-print(np.max(np.linalg.svd(np.array([[3,6],[7,2]]))[1]))
+# print(np.max(np.linalg.svd(np.array([[3,6],[7,2]]))[1]))
+
+# A = np.array([1,2,3])[None,:]
+# print(isinstance(A,np.ndarray))
+print(np.clip(0,1,None))
+print(np.clip(100,1,None))

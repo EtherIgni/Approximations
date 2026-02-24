@@ -2,6 +2,7 @@
 sammy.inp
 SAMMY.PAR
 sammy.dat
+SAMMY.COV
 
 
 EOF

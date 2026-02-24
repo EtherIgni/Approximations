@@ -14,6 +14,8 @@ def split_parameter(string):
         value = int(value)
     elif(data_type[0] == "f"):
         value = float(value)
+    elif(data_type[0] == "b"):
+        value = bool(value)
     elif(data_type[0] == "l"):
         if(data_type[1] == "s"):
             value = value.split(",")

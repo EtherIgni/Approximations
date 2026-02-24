@@ -3,7 +3,7 @@ import math
 import matplotlib.pyplot  as plt
 from   scipy.optimize import least_squares, curve_fit
 
-def coordinate_descent(initial_values,steps,evaluator,max_num_iterations,debug):
+def coordinate_Descent(initial_values,steps,evaluator,max_num_iterations,debug):
     num_rows=initial_values.shape[0]
     num_cols=initial_values.shape[1]
     new_values=initial_values
@@ -76,7 +76,7 @@ def coordinate_descent(initial_values,steps,evaluator,max_num_iterations,debug):
     if debug: print("")
     return(new_values)
 
-def gaussNewtonAlgorithm(initial_values,
+def gaussNewton_Algorithm(initial_values,
                          energy_length,
                          evaluator,
                          jacobian_func,
@@ -275,7 +275,7 @@ def scipy_Method(evaluation_model,
         return(best_fit)
     return(fitting_Func)
 
-def scipy_Method_uncertainty(evaluation_model,
+def scipy_Method_Uncertainty(evaluation_model,
                              parameters,
                              debug):
     # Required Parameters:

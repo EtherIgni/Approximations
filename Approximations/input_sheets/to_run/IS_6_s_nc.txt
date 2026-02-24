@@ -1,14 +1,15 @@
 === Run Meta Data ===
 
-Data Group                : s   : Syndat
-Title                     : s   : non-generated 100 channel complies
-Number Data Sets          : i   : 2000
+Data Group                : s   : Imroved_Syndat
+Title                     : s   : syndat 2 channel non compliant
+Number Data Sets          : i   : 1000
 
 === Molecular Information ===
 
 Incident Name             : s   : n
 Incident Nucleons         : i   : 1
 Incident Protons          : i   : 0
+Incident Spin             : f   : 0.5
 
 Departing Name            : s   : g
 Departing Nucleons        : i   : 0
@@ -17,10 +18,13 @@ Departing Protons         : i   : 0
 Target Name               : s   : Ta181
 Target Nucleons           : i   : 181
 Target Protons            : i   : 71
+Target Spin               : f   : 3.5
 
 === Interaction Information ===
 
 Separation Energy         : f   : 7.5767E6
+
+Effective Radius          : f   : 8.127E-15
 
 Elastic Variance          : f   : 452.5E-3
 Elastic Radius            : f   : 0.2
@@ -32,10 +36,15 @@ Capture Ell               : f   : 0
 Number Levels             : i   : 2
 Resonance Distance        : f   : 600
 Resonance Average Spacing : f   : 500
+Resonance Levels          : l,f : 215,235
+
+Broadening Temperature    : f   : 300
+Broaden Cross Section     : i   : 1
 
 Excitation Model          : s   : Flat
-Excitation Limits         : l,f : 1.5E3
-Number Excitation States  : i   : 100
+Excitation Limits         : l,f : 1E3
+Number Excitation States  : i   : 6
+Excited States            : l,f : 0,7E2,7E3,7E4,7E5,7E6
 
 === Model Information ===
 
@@ -44,12 +53,14 @@ Energy Grid Buffer        : f   : 10
 
 Data Format               : s   : Total
 
+Fudge Factor              : f   : 0.01
+
 === Fitting Parameters ===
 
 === Selections ===
 
-Data Model                : i   : 1
-Fit Model                 : i   : 1
+Data Model                : i   : 2
+Fit Model                 : i   : 2
 Fit Method                : i   : 1
 
 ---End---

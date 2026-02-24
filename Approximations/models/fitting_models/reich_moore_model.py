@@ -1,7 +1,7 @@
 import numpy as np
 from   copy  import deepcopy
 
-from Approximations.models.math_models.R_matrix_new import RMInterface
+from Approximations.models.math_models.R_matrix_new import rMatInterface
 from Approximations.tools.gamma_tools               import reshape_RM
 
 
@@ -9,22 +9,24 @@ from Approximations.tools.gamma_tools               import reshape_RM
 
 
 
-class ReichMoore():
+class reichMoore():
     def __init__(self,
                  molecular_information,
                  interaction_information,
                  model_information):
         assert "Incident Nucleons"  in molecular_information,   "Model Gen Failed: Incident Nucleons not provided in molecular_information"
         assert "Target Nucleons"    in molecular_information,   "Model Gen Failed: Target Nucleons not provided in molecular_information"
+        assert "Incident Spin"      in molecular_information,   "Model Gen Failed: Incident Spin not provided in molecular_information"
+        assert "Target Spin"        in molecular_information,   "Model Gen Failed: Target Spin not provided in molecular_information"
         assert "Separation Energy"  in interaction_information, "Model Gen Failed: Separation Energy not provided in interaction_information"
         assert "Number Levels"      in interaction_information, "Model Gen Failed: Number Levels not provided in interaction_information"
         assert "Excited States"     in interaction_information, "Model Gen Failed: Excited States not provided in interaction_information"
         assert "Resonance Levels"   in interaction_information, "Model Gen Failed: Resonance Levels not provided in interaction_information"
+        assert "Effective Radius"   in interaction_information, "Model Gen Failed: Effective Radius not provided in interaction_information"
         assert "Elastic Variance"   in interaction_information, "Model Gen Failed: Elastic Variance not provided in interaction_information"
-        assert "Elastic Radius"     in interaction_information, "Model Gen Failed: Elastic Radius not provided in interaction_information"
         assert "Capture Variance"   in interaction_information, "Model Gen Failed: Capture Variance not provided in interaction_information"
-        assert "Capture Radius"     in interaction_information, "Model Gen Failed: Capture Radius not provided in interaction_information"
         assert "Capture Ell"        in interaction_information, "Model Gen Failed: Capture Ell not provided in interaction_information"
+        assert "Gamma Matrix"       in interaction_information, "Model Gen Failed: Gamma Matrix not provided in interaction_information"
         assert "Energy Grid"        in model_information,       "Model Gen Failed: Energy Grid not provided in model_information"
         assert "Data Format"        in model_information,       "Model Gen Failed: Data Format not provided in model_information"
         
@@ -35,38 +37,39 @@ class ReichMoore():
         excited_states    = interaction_information["Excited States"][:self.num_levels]
         resonances        = interaction_information["Resonance Levels"]
         energy_grid       = model_information["Energy Grid"]
-        self.math_model   = RMInterface(self.num_levels, self.num_channels)
+        self.mathModel   = rMatInterface(self.num_levels, self.num_channels)
 
-        self.math_model.set_Molecular_Information(molecular_information["Incident Nucleons"],
-                                                  molecular_information["Target Nucleons"],
-                                                  interaction_information["Separation Energy"])
+        self.mathModel.set_Molecular_Information(molecular_information["Incident Nucleons"],
+                                                 molecular_information["Target Nucleons"],
+                                                 molecular_information["Incident Spin"],
+                                                 molecular_information["Target Spin"],
+                                                 interaction_information["Effective Radius"],
+                                                 interaction_information["Separation Energy"])
         
-        self.math_model.set_Energy_Grid(energy_grid)
+        self.mathModel.set_Energy_Grid(energy_grid)
         
-        self.math_model.set_Resonance_Energy(resonances)
+        self.mathModel.set_Resonance_Energy(resonances)
         
-        self.math_model.set_Excitation_Energy(excited_states)
+        self.mathModel.set_Excitation_Energy(excited_states)
         
-        self.math_model.set_Elastic_information(interaction_information["Elastic Variance"],
-                                                interaction_information["Elastic Radius"])
+        self.mathModel.set_Elastic_information(interaction_information["Elastic Variance"])
         
-        self.math_model.set_Capture_Information(interaction_information["Capture Variance"],
-                                                interaction_information["Capture Radius"],
-                                                interaction_information["Capture Ell"])
+        self.mathModel.set_Capture_Information(interaction_information["Capture Variance"],
+                                               interaction_information["Capture Ell"])
 
 
 
     def generate_Data(self, gamma_vector):
         gamma_matrix=reshape_RM(gamma_vector, self.num_levels)
-        self.math_model.set_Gamma_Matrix(gamma_matrix)
-        self.math_model.calc_Cross_Sections()
+        self.mathModel.set_Gamma_Matrix(gamma_matrix)
+        self.mathModel.calc_Cross_Sections()
         
         if(self.data_format=="Total and Gamma"):
-            measures      = np.zeros((self.math_model.energy_length, 2))
-            measures[:,0] = np.sum(self.math_model.XS,1)
-            measures[:,1] = np.sum(self.math_model.XS[:,1:],1)
+            measures      = np.zeros((self.mathModel.energy_length, 2))
+            measures[:,0] = np.sum(self.mathModel.cross_section,1)
+            measures[:,1] = np.sum(self.mathModel.cross_section[:,1:],1)
         else:
-            measures      = np.sum(self.math_model.XS,1)
+            measures      = np.sum(self.mathModel.cross_section,1)
         return(measures)
     
     def get_Initial_Guess(self, true_gamma_matrix):

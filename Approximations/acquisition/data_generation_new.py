@@ -48,9 +48,9 @@ fitting_parameters      = {"Iteration Limit":        1000,
                            "Priority Minimum":       float(10E-8),
                            "Priority Maximum":       float(10E16)}
 
-selections              = {"Data Model": 2,
-                           "Fit Model":  1,
-                           "Fit Method": 2}
+selections              = {"Data Model": 1,
+                           "Fit Model":  2,
+                           "Fit Method": 1}
 
 interaction_information["Excited States"] = np.sort(((1-np.random.rand(int(num_channels_for_run-1)))*interaction_information["Separation Energy"]))
 print(interaction_information["Excited States"])

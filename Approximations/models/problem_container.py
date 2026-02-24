@@ -1,20 +1,21 @@
 import numpy as np
 from copy import copy
 
-from   Approximations.models.data_models.R_matrix_full        import RMatrixFull
-from   Approximations.models.data_models.Syndat               import SyndatData
-from   Approximations.models.fitting_models.reich_moore_model import ReichMoore
-from   Approximations.tools.fitting                           import scipy_Method, scipy_Method_uncertainty
-import Approximations.tools.distributions                     as     Distributions
+from   Approximations.models.data_models.R_matrix_full        import rMatrixFull
+from   Approximations.models.data_models.Syndat               import syndatData
+from   Approximations.models.fitting_models.reich_moore_model import reichMoore
+from   Approximations.models.fitting_models.Sammy             import sammy
+from   Approximations.tools.fitting                           import scipy_Method, scipy_Method_Uncertainty
+import Approximations.tools.distributions                     as     distributions
 
 
 
 
 
 class Problem():
-    data_model_formats = [RMatrixFull,  SyndatData]
-    fit_model_formats  = [ReichMoore]
-    fitting_algorithms = [scipy_Method, scipy_Method_uncertainty]
+    data_model_formats = [rMatrixFull,syndatData]
+    fit_model_formats  = [reichMoore, sammy]
+    fitting_algorithms = [lambda model,params,n: model.fit_call(params), scipy_Method, scipy_Method_Uncertainty]
 
     def __init__(self,
                  molecular_information,
@@ -33,10 +34,9 @@ class Problem():
         #                          Target Protons                #
         #
         # interaction_information: Separation Energy             ev
+        #                          Effective Radius              10^-12 m
         #                          Elastic Variance              ev
-        #                          Elastic Radius                ev
         #                          Capture Variance              ev
-        #                          Capture Radius                ev
         #                          Capture Ell                   ev
         #                          Excited States                ev
         #                          Number Levels                 #
@@ -57,27 +57,30 @@ class Problem():
         #                              2: R-Matrix w/ Synthetic Data
         #                          Fit Model
         #                              1: Reich Moore
+        #                              2: Sammy
         #                          Fit Method
-        #                              1: Least squares method from SciPy
-        #                              2: Least Squares with Uncertainty
-
-        self.molecular_information   = copy(molecular_information)
-        self.interaction_information = copy(interaction_information)
-        self.model_information       = copy(model_information)
-        self.fitting_parameters      = copy(fitting_parameters)
-        self.selections              = copy(selections)
+        #                              1: Self Fit (For if a fit model has a fitting function built in)
+        #                              2: Least squares method from SciPy
+        #                              3: Least Squares with Uncertainty
+        
+        self.molecular_information   = molecular_information
+        self.interaction_information = interaction_information
+        self.model_information       = model_information
+        self.fitting_parameters      = fitting_parameters
+        self.selections              = selections
 
         self.sample_Information()
         
         self.true_gamma_matrix = self.interaction_information["Gamma Matrix"]
 
-        self.data_model = self.form_Model(self.data_model_formats,
-                                          self.selections["Data Model"])
-        self.fit_model  = self.form_Model(self.fit_model_formats,
-                                          self.selections["Fit Model"])
+        self.dataModel = self.form_Model(self.data_model_formats,
+                                         self.selections["Data Model"])
+        
+        self.fitModel  = self.form_Model(self.fit_model_formats,
+                                         self.selections["Fit Model"])
 
         self.fit_Call = self.form_Fit_Call(self.fitting_algorithms,
-                                           self.selections["Fit Method"])
+                                          self.selections["Fit Method"])
         
         self.data     = self.generate_Data()
 
@@ -96,15 +99,15 @@ class Problem():
     def form_Fit_Call(self,
                       fitting_algorithms,
                       algorithm_choice):
-        fitting_alg = fitting_algorithms[algorithm_choice-1]
-        return(fitting_alg(self.fit_model,
-                           self.fitting_parameters,
-                           0))
+        fittingAlg = fitting_algorithms[algorithm_choice-1]
+        return(fittingAlg(self.fitModel,
+                          self.fitting_parameters,
+                          0))
 
 
 
     def generate_Data(self):
-        return(self.data_model.generate_Data())
+        return(self.dataModel.generate_Data())
     
 
 
@@ -139,7 +142,7 @@ class Problem():
             levels    = np.zeros(self.interaction_information["Number Levels"])
             levels[0] = self.interaction_information["Resonance Distance"]
             for idx in range(1, self.interaction_information["Number Levels"]):
-                levels[idx] = Distributions.sample_Wigner_InvCDF(1)*self.interaction_information["Resonance Average Spacing"] + levels[idx-1]
+                levels[idx] = distributions.sample_Wigner_InvCDF(1)*self.interaction_information["Resonance Average Spacing"] + levels[idx-1]
             self.interaction_information["Resonance Levels"] = levels
 
         if((not("Energy Grid"          in self.model_information)) and
@@ -169,4 +172,4 @@ class Problem():
 
 
     def get_Initial_Guess(self):
-        return(self.fit_model.get_Initial_Guess(self.true_gamma_matrix))
+        return(self.fitModel.get_Initial_Guess(self.true_gamma_matrix))
