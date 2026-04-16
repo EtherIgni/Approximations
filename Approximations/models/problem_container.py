@@ -146,13 +146,44 @@ class Problem():
             self.interaction_information["Resonance Levels"] = levels
 
         if((not("Energy Grid"          in self.model_information)) and
-               ("Energy Grid Size"     in self.model_information)  and
-               ("Energy Grid Buffer"   in self.model_information)):
-           assert "Resonance Levels"   in self.interaction_information, "Information Gen Failed: Resonance Levels not provided in interaction_information"
+               ("Energy Grid Gen Type" in self.model_information)):
+            assert "Energy Grid Gen Type" in self.model_information, "Information Gen Failed: Energy Grid nor Energy Grid Gen Type provided in model_information"
+            if(self.model_information["Energy Grid Gen Type"]=="Uniform"):
+                assert "Energy Grid Buffer" in self.model_information,       "Information Gen Failed: Energy Grid Buffer not provided in model_information"
+                assert "Energy Grid Size"   in self.model_information,       "Information Gen Failed: Energy Grid Size not provided in model_information"
+                assert "Resonance Levels"   in self.interaction_information, "Information Gen Failed: Resonance Levels not provided in interaction_information"
 
-           self.model_information["Energy Grid"] = np.linspace(self.interaction_information["Resonance Levels"][0]  - self.model_information["Energy Grid Buffer"],
-                                                               self.interaction_information["Resonance Levels"][-1] + self.model_information["Energy Grid Buffer"],
-                                                               self.model_information["Energy Grid Size"])
+                self.model_information["Energy Grid"] = np.linspace(self.interaction_information["Resonance Levels"][0]  - self.model_information["Energy Grid Buffer"],
+                                                                    self.interaction_information["Resonance Levels"][-1] + self.model_information["Energy Grid Buffer"],
+                                                                    self.model_information["Energy Grid Size"])
+            elif(self.model_information["Energy Grid Gen Type"]=="Clustered"):
+                assert "Energy Grid Buffer"              in self.model_information,       "Information Gen Failed: Energy Grid Buffer not provided in model_information"
+                assert "Energy Grid Clustering Strength" in self.model_information,       "Information Gen Failed: Energy Grid Clustering Strength not provided in model_information"
+                assert "Energy Grid Clustering Width"    in self.model_information,       "Information Gen Failed: Energy Grid Clustering Width not provided in model_information"
+                assert "Energy Grid Size"                in self.model_information,       "Information Gen Failed: Energy Grid Size not provided in model_information"
+                assert "Resonance Levels"                in self.interaction_information, "Information Gen Failed: Resonance Levels not provided in interaction_information"
+                
+                energy_targets = self.interaction_information["Resonance Levels"]
+                min_energy     = energy_targets[0] - self.model_information["Energy Grid Buffer"]
+                max_energy     = energy_targets[1] + self.model_information["Energy Grid Buffer"]
+                num_points     = self.model_information["Energy Grid Size"]
+                strength       = self.model_information["Energy Grid Clustering Strength"]
+                width          = self.model_information["Energy Grid Clustering Width"]
+                
+                uniform_dist = np.linspace(0,1,num_points)
+                clustering_targets = (energy_targets - min_energy)/(max_energy - min_energy)
+
+                cluster_weights = np.ones_like(uniform_dist)
+                for target in clustering_targets:
+                    cluster_weights += strength * np.exp(-((uniform_dist - target)**2)/(2*width**2))
+                cluster_weights = 1/cluster_weights
+
+                cumulative_weights = np.cumsum(cluster_weights)
+                cumulative_weights = (cumulative_weights - cumulative_weights[0])/(cumulative_weights[-1] - cumulative_weights[0])
+
+                self.model_information["Energy Grid"] = min_energy + (max_energy - min_energy)*cumulative_weights
+            else:
+                assert "Energy Grid" in self.model_information, "Information Gen Failed: No energy grid or options to generate one were provided in model_information"
         
         if((not("Gamma Matrix"        in self.interaction_information))and
                ("Elastic Variance"    in self.interaction_information)and

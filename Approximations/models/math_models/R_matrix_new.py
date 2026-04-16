@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 
 class rMatInterface():
     h_bar        = 6.582119e-16    # eV-s
@@ -114,13 +115,26 @@ class rMatInterface():
         self.cross_section[:,0] = elastic + self.cross_section[:,1]
         
     def doppler_Broaden(self, temperature):
-        doppler_width = np.sqrt(4*self.boltz*self.incident_nucleons*temperature*self.energy_grid[:,None]/self.target_nucleons)
+        num_data_points = self.energy_grid.size
+        padding = int(num_data_points/4)
         
-        energy_factor = np.sqrt(self.energy_grid[None,:]*self.energy_grid[:,None])
-        first_exponential  = np.exp(-4*np.power(self.energy_grid[:,None]-energy_factor,2)/np.power(doppler_width,2))
-        second_exponential = np.exp(-4*np.power(self.energy_grid[:,None]+energy_factor,2)/np.power(doppler_width,2))
-        kernel = (first_exponential-second_exponential) * np.sqrt(self.energy_grid[:,None]/self.energy_grid[None,:])
-        integrand = kernel[:,:,None] * self.cross_section[None,:,:]
-        integral  = np.trapezoid(integrand,self.energy_grid[None,:,None],axis=1)
+        velocity_grid = np.sqrt(2*self.energy_grid)
+        uni_velocity_grid, vel_step = np.linspace(velocity_grid[0],velocity_grid[-1],num_data_points,retstep=True)
         
-        self.cross_section = integral/(doppler_width[:,0, None]*np.sqrt(np.pi))
+        thermal_factor = np.sqrt(2*self.boltz*temperature/self.target_nucleons)
+        kernal_grid = (np.arange(num_data_points) - num_data_points//2)*vel_step
+        kernel = (vel_step/(thermal_factor*np.sqrt(np.pi)))*np.exp(-np.power(kernal_grid,2)/np.power(thermal_factor,2))
+        
+        for cross_idx in range(self.cross_section.shape[1]):
+            uni_cross_section_grid = np.interp(uni_velocity_grid, velocity_grid, self.cross_section[:,cross_idx])
+            
+            padded_cross_section = np.pad(uni_cross_section_grid,padding,mode="reflect")
+            
+            new_cross_section = scipy.signal.convolve(padded_cross_section, kernel, mode="same")[padding:-padding]
+            
+            new_cross_section = np.interp(velocity_grid, uni_velocity_grid, new_cross_section)
+                
+            self.cross_section[:,cross_idx] = new_cross_section
+
+    def convert_Total_To_Transmission(self, thickness):
+        self.cross_section[:,0] = np.exp(-thickness*self.cross_section[:,0])

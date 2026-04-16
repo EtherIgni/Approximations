@@ -18,26 +18,29 @@ class sammy():
                  molecular_information,
                  interaction_information,
                  model_information):
-        assert "Incident Nucleons"  in molecular_information,   "Model Gen Failed: Incident Nucleons not provided in molecular_information"
-        assert "Target Nucleons"    in molecular_information,   "Model Gen Failed: Target Nucleons not provided in molecular_information"
-        assert "Incident Spin"      in molecular_information,   "Model Gen Failed: Incident Spin not provided in molecular_information"
-        assert "Target Spin"        in molecular_information,   "Model Gen Failed: Target Spin not provided in molecular_information"
-        assert "Separation Energy"  in interaction_information, "Model Gen Failed: Separation Energy not provided in interaction_information"
-        assert "Number Levels"      in interaction_information, "Model Gen Failed: Number Levels not provided in interaction_information"
-        assert "Excited States"     in interaction_information, "Model Gen Failed: Excited States not provided in interaction_information"
-        assert "Resonance Levels"   in interaction_information, "Model Gen Failed: Resonance Levels not provided in interaction_information"
-        assert "Effective Radius"   in interaction_information, "Model Gen Failed: Effective Radius not provided in interaction_information"
-        assert "Elastic Variance"   in interaction_information, "Model Gen Failed: Elastic Variance not provided in interaction_information"
-        assert "Capture Variance"   in interaction_information, "Model Gen Failed: Capture Variance not provided in interaction_information"
-        assert "Capture Ell"        in interaction_information, "Model Gen Failed: Capture Ell not provided in interaction_information"
-        assert "Gamma Matrix"       in interaction_information, "Model Gen Failed: Gamma Matrix not provided in interaction_information"
-        assert "Energy Grid"        in model_information,       "Model Gen Failed: Energy Grid not provided in model_information"
-        assert "Data Format"        in model_information,       "Model Gen Failed: Data Format not provided in model_information"
+        assert "Incident Nucleons"     in molecular_information,   "Model Gen Failed: Incident Nucleons not provided in molecular_information"
+        assert "Target Nucleons"       in molecular_information,   "Model Gen Failed: Target Nucleons not provided in molecular_information"
+        assert "Incident Spin"         in molecular_information,   "Model Gen Failed: Incident Spin not provided in molecular_information"
+        assert "Target Spin"           in molecular_information,   "Model Gen Failed: Target Spin not provided in molecular_information"
+        assert "Separation Energy"     in interaction_information, "Model Gen Failed: Separation Energy not provided in interaction_information"
+        assert "Number Levels"         in interaction_information, "Model Gen Failed: Number Levels not provided in interaction_information"
+        assert "Excited States"        in interaction_information, "Model Gen Failed: Excited States not provided in interaction_information"
+        assert "Resonance Levels"      in interaction_information, "Model Gen Failed: Resonance Levels not provided in interaction_information"
+        assert "Effective Radius"      in interaction_information, "Model Gen Failed: Effective Radius not provided in interaction_information"
+        assert "Elastic Variance"      in interaction_information, "Model Gen Failed: Elastic Variance not provided in interaction_information"
+        assert "Capture Variance"      in interaction_information, "Model Gen Failed: Capture Variance not provided in interaction_information"
+        assert "Capture Ell"           in interaction_information, "Model Gen Failed: Capture Ell not provided in interaction_information"
+        assert "Gamma Matrix"          in interaction_information, "Model Gen Failed: Gamma Matrix not provided in interaction_information"
+        assert "Energy Grid"           in model_information,       "Model Gen Failed: Energy Grid not provided in model_information"
+        assert "Data Format"           in model_information,       "Model Gen Failed: Data Format not provided in model_information"
+        assert "Grid Reduction Factor" in model_information,      "Model Gen Failed: Grid Reduction Factor not provided in model_information"
         
         self.elastic_penetrability = interaction_information["Elastic Penetrability"]
         self.capture_penetrability = interaction_information["Capture Penetrability"]
         
-        self.energy_grid       = model_information["Energy Grid"]
+        self.reduction_factor = model_information["Grid Reduction Factor"]
+        
+        self.energy_grid       = model_information["Energy Grid"][::self.reduction_factor]
         self.fudge_factor      = model_information["Fudge Factor"]
         
         target             = Particle(Z = int(molecular_information["Target Protons"]),
@@ -69,31 +72,32 @@ class sammy():
                                         l_max            = 1)
 
         self.part_pair.add_spin_group(Jpi     = str(spin),
-                                J_ID    = 1,
-                                D       = 9,
-                                gn2_avg = interaction_information["Elastic Variance"],
-                                gn2_dof = 1,
-                                gg2_avg = interaction_information["Capture Variance"],
-                                gg2_dof = 1)
+                                      J_ID    = 1,
+                                      D       = 9,
+                                      gn2_avg = interaction_information["Elastic Variance"],
+                                      gn2_dof = 1,
+                                      gg2_avg = interaction_information["Capture Variance"],
+                                      gg2_dof = 1)
 
-        self.exp_model          = Experimental_Model(title        = "sim_model",
-                                                reaction     = "capture",
-                                                energy_grid  = self.energy_grid,
-                                                temp         = (interaction_information["Broadening Temperature"], 0))
+        self.trans_model          = Experimental_Model(title        = "trans_model",
+                                                       reaction     = "trans",
+                                                       energy_grid  = self.energy_grid,
+                                                       temp         = (interaction_information["Broadening Temperature"], 0))
 
-        self.exp_model.template = os.path.realpath("capture_template.inp")
+        self.trans_model.template = os.path.realpath("sammy_template.inp")
         
-        self.ECSCM_experiment = Experimental_Model(title="theo",
-                                              reaction="capture",
-                                              temp=(interaction_information["Broadening Temperature"],0))
-        self.ECSCM_experiment.template = os.path.realpath("capture_template.inp")
+        self.capture_model          = Experimental_Model(title        = "capture_model",
+                                                         reaction     = "capture",
+                                                         energy_grid  = self.energy_grid,
+                                                         temp         = (interaction_information["Broadening Temperature"], 0))
+
+        self.capture_model.template = os.path.realpath("sammy_template.inp")
         
         sammy_path         = os.path.expanduser("~")+"/.local/Sammy/bin/sammy"
         self.sammy_rto          = sammy_classes.SammyRunTimeOptions(sammy_path,
                                                             Print        = True,
                                                             bayes        = True,
-                                                            keep_runDIR  = True,
-                                                            get_ECSCM    = True,
+                                                            keep_runDIR  = False,
                                                             sammy_runDIR = 'sammy_run_dir')
     
     def get_Initial_Guess(self, true_gamma_matrix):
@@ -101,22 +105,30 @@ class sammy():
     
     def fit_call(self,fitting_parameters):
         def fit(initial_guess, data):
-            if(isinstance(data,np.ndarray)):
-                dataframe = pd.DataFrame({"E":self.energy_grid, "exp":data, "exp_unc":np.clip(data*self.fudge_factor,1e-6,None)})
-            else:
-                dataframe = data
-            sammy_input = sammy_classes.SammyInputData(
-                self.part_pair,
-                self.res_ladder,
-                template=self.exp_model.template,
-                experiment=self.exp_model,
-                experimental_data=dataframe,
-                energy_grid = self.energy_grid,
-                ECSCM_experiment=self.ECSCM_experiment
-            )
+            trans_data   = pd.DataFrame({"E":self.energy_grid, "exp":data[::self.reduction_factor,0], "exp_unc":np.clip(data[::self.reduction_factor,0]*self.fudge_factor,1e-6,None)})
+            capture_data = pd.DataFrame({"E":self.energy_grid, "exp":data[::self.reduction_factor,1], "exp_unc":np.clip(data[::self.reduction_factor,1]*self.fudge_factor,1e-6,None)})
+            
+            sammy_input = sammy_classes.SammyInputDataYW(particle_pair = self.part_pair,
+                                                         resonance_ladder = self.res_ladder,  
+                                                     
+                                                         datasets= [trans_data, capture_data],
+                                                         experiments = [self.trans_model, self.capture_model],
+                                                         experimental_covariance= [{},{}], 
+                                                         
+                                                         max_steps = 10,
+                                                         iterations = 3,
+                                                         step_threshold = 0.01,
+                                                         autoelim_threshold = None,
+                                                     
+                                                         LS = False,
+                                                         LevMar = True,
+                                                         LevMarV = 2,
+                                                         LevMarVd= 5,
+                                                         maxF= 1.5,
+                                                         initial_parameter_uncertainty = 0.01)
 
-            sammy_input.initial_parameter_uncertainty=10
-            sammy_out = sammy_functions.run_sammy(sammy_input, self.sammy_rto)
+            sammy_out = sammy_functions.run_sammy_YW(sammy_input, self.sammy_rto)
+            
             elastic_widths = np.sqrt(np.abs(sammy_out.par_post["Gn1"].to_numpy())/(2000*self.elastic_penetrability))
             capture_widths = np.sqrt(np.abs(sammy_out.par_post["Gg"].to_numpy())/(2000*self.capture_penetrability))
             return(np.concat([elastic_widths,capture_widths]))

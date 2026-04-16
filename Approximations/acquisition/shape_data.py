@@ -1,4 +1,4 @@
-main_dir_path     = "/home/aaron/General/Nuclear_Research/Approximations/Approximations/run_data/imroved_syndat_2"
+main_dir_path     = "/home/aaron/General/Nuclear_Research/Approximations/Approximations/run_data/sammy_tests"
 num_channels = 2
 
 

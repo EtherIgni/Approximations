@@ -14,24 +14,27 @@ class rMatrixFull():
                  molecular_information,
                  interaction_information,
                  model_information):
-        assert "Incident Nucleons"     in molecular_information,   "Model Gen Failed: Incident Nucleons not provided in molecular_information"
-        assert "Target Nucleons"       in molecular_information,   "Model Gen Failed: Target Nucleons not provided in molecular_information"
-        assert "Incident Spin"         in molecular_information,   "Model Gen Failed: Incident Spin not provided in molecular_information"
-        assert "Target Spin"           in molecular_information,   "Model Gen Failed: Target Spin not provided in molecular_information"
-        assert "Separation Energy"     in interaction_information, "Model Gen Failed: Separation Energy not provided in interaction_information"
-        assert "Number Levels"         in interaction_information, "Model Gen Failed: Number Levels not provided in interaction_information"
-        assert "Excited States"        in interaction_information, "Model Gen Failed: Excited States not provided in interaction_information"
-        assert "Resonance Levels"      in interaction_information, "Model Gen Failed: Resonance Levels not provided in interaction_information"
-        assert "Effective Radius"      in interaction_information, "Model Gen Failed: Effective Radius not provided in interaction_information"
-        assert "Elastic Variance"      in interaction_information, "Model Gen Failed: Elastic Variance not provided in interaction_information"
-        assert "Capture Variance"      in interaction_information, "Model Gen Failed: Capture Variance not provided in interaction_information"
-        assert "Capture Ell"           in interaction_information, "Model Gen Failed: Capture Ell not provided in interaction_information"
-        assert "Gamma Matrix"          in interaction_information, "Model Gen Failed: Gamma Matrix not provided in interaction_information"
-        assert "Broaden Cross Section" in interaction_information, "Model Gen Failed: Broaden Cross Section not provided in interaction_information"
-        assert "Energy Grid"           in model_information,       "Model Gen Failed: Energy Grid not provided in model_information"
-        assert "Data Format"           in model_information,       "Model Gen Failed: Data Format not provided in model_information"
+        assert "Incident Nucleons"       in molecular_information,   "Model Gen Failed: Incident Nucleons not provided in molecular_information"
+        assert "Target Nucleons"         in molecular_information,   "Model Gen Failed: Target Nucleons not provided in molecular_information"
+        assert "Incident Spin"           in molecular_information,   "Model Gen Failed: Incident Spin not provided in molecular_information"
+        assert "Target Spin"             in molecular_information,   "Model Gen Failed: Target Spin not provided in molecular_information"
+        assert "Separation Energy"       in interaction_information, "Model Gen Failed: Separation Energy not provided in interaction_information"
+        assert "Number Levels"           in interaction_information, "Model Gen Failed: Number Levels not provided in interaction_information"
+        assert "Excited States"          in interaction_information, "Model Gen Failed: Excited States not provided in interaction_information"
+        assert "Resonance Levels"        in interaction_information, "Model Gen Failed: Resonance Levels not provided in interaction_information"
+        assert "Effective Radius"        in interaction_information, "Model Gen Failed: Effective Radius not provided in interaction_information"
+        assert "Elastic Variance"        in interaction_information, "Model Gen Failed: Elastic Variance not provided in interaction_information"
+        assert "Capture Variance"        in interaction_information, "Model Gen Failed: Capture Variance not provided in interaction_information"
+        assert "Capture Ell"             in interaction_information, "Model Gen Failed: Capture Ell not provided in interaction_information"
+        assert "Gamma Matrix"            in interaction_information, "Model Gen Failed: Gamma Matrix not provided in interaction_information"
+        assert "Broaden Cross Section"   in interaction_information, "Model Gen Failed: Broaden Cross Section not provided in interaction_information"
+        assert "Convert to Transmission" in interaction_information, "Model Gen Failed: Convert to Transmission not provided in interaction_information"
+        assert "Energy Grid"             in model_information,       "Model Gen Failed: Energy Grid not provided in model_information"
+        assert "Data Format"             in model_information,       "Model Gen Failed: Data Format not provided in model_information"
         if(interaction_information["Broaden Cross Section"]):
             assert "Broadening Temperature" in interaction_information, "Model Gen Failed: Broadening Temperature not provided in interaction_information"
+        if(interaction_information["Convert to Transmission"]):
+            assert "Material Thickness" in interaction_information, "Model Gen Failed: Material Thickness not provided in interaction_information"
         
         self.init_guess   = {}
         self.data_format  = model_information["Data Format"]
@@ -65,6 +68,8 @@ class rMatrixFull():
         self.mathModel.calc_Cross_Sections()
         if(interaction_information["Broaden Cross Section"]):
             self.mathModel.doppler_Broaden(interaction_information["Broadening Temperature"])
+        if(interaction_information["Convert to Transmission"]):
+            self.mathModel.convert_Total_To_Transmission(interaction_information["Material Thickness"])
         
         self.true_gamma_matrix = self.mathModel.get_Gamma_Matrix()
         self.energy_grid       = self.mathModel.energy_grid
@@ -75,12 +80,7 @@ class rMatrixFull():
         interaction_information["Elastic Penetrability"] = resonance_penetrabilies[:,0]
         interaction_information["Capture Penetrability"] = np.sum(resonance_penetrabilies[:,1:],1)
     
-
-
-    def get_Cross_Sections(self):
-        return(self.mathModel.cross_section)
-    
     def generate_Data(self):
-        cross_sections = self.get_Cross_Sections()
+        cross_sections = self.mathModel.cross_section
         
-        return(cross_sections[:,1])
+        return(cross_sections)
