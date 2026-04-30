@@ -53,7 +53,7 @@ interaction_information = {"Separation Energy":         float(7.5767E6),
 model_information       = {"Energy Grid Gen Type":            "Uniform",
                            "Energy Grid Size":                6000,
                            "Energy Grid Buffer":              5,
-                           "Grid Reduction Factor":           6,
+                           "Grid Reduction Factor":           60,
                            "Data Format":                     "Full",
                            "Fudge Factor":                    0.01}
 
@@ -64,7 +64,7 @@ fitting_parameters      = {"Iteration Limit":        100,
                            "Priority Minimum":       float(10E-8),
                            "Priority Maximum":       float(10E16)}
 
-selections              = {"Data Model": 1,
+selections              = {"Data Model": 2,
                            "Fit Model":  2,
                            "Fit Method": 1}
 
@@ -77,7 +77,26 @@ problem      = Problem(molecular_information,
 energy_grid  = problem.model_information["Energy Grid"]
 energy_range = np.array([np.min(energy_grid),np.max(energy_grid)])
 
-data      = problem.data
+data        = problem.data
+
+# selections["Data Model"] = 2
+
+# problem      = Problem(molecular_information,
+#                        interaction_information,
+#                        model_information,
+#                        fitting_parameters,
+#                        selections)
+
+# data_syndat      = problem.data
+
+# fig, axes = plt.subplots(2,1)
+# axes[0].plot(energy_grid, data[:,0], label="True", c="Black")
+# axes[0].errorbar(data_syndat["Transmission"]["E"], data_syndat["Transmission"]["exp"], data_syndat["Transmission"]["exp_unc"], label="Syndat", c="Red", fmt=".")
+# axes[0].legend()
+# axes[1].plot(energy_grid, data[:,1], label="True",      c="Black")
+# axes[1].errorbar(data_syndat["Capture"]["E"], data_syndat["Capture"]["exp"], data_syndat["Capture"]["exp_unc"], label="Syndat", c="Green", fmt=".")
+# axes[1].legend()
+# plt.show()
 
 # fig,axes = plt.subplots(2,1)
 # axes[0].plot(energy_grid,data[:,0],color="red",label="Total")

@@ -1,0 +1,16 @@
+Title
+Ta181     181.0     200.0     250.0          2     
+TWENTY
+EV
+GENERATE PLOT FILE AUTOMATICALLY
+XCT
+SOLVE BAYES EQUATIONS
+yw
+BROADENING IS WANTED
+USE FREE GAS MODEL OF DOPPLER BROADENING
+
+  300.0     35.185    0.0             
+  8.127     0.067166                       0.00000          
+trans
+  1      1    0  4.0       1.0  3.5
+    1    1    0    0       4.0   

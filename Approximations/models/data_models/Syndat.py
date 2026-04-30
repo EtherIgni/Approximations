@@ -12,6 +12,7 @@ from   ATARI.syndat.data_classes                            import syndatOPT
 from   ATARI.syndat.syndat_model                            import Syndat_Model
 from   ATARI.sammy_interface                                import sammy_classes,     template_creator
 from   ATARI.ModelData.measurement_models.capture_yield_rpi import Capture_Yield_RPI
+from   ATARI.ModelData.measurement_models.transmission_rpi  import Transmission_RPI
 
 
 
@@ -37,6 +38,11 @@ class syndatData():
         assert "Gamma Matrix"       in interaction_information, "Model Gen Failed: Gamma Matrix not provided in interaction_information"
         assert "Energy Grid"        in model_information,       "Model Gen Failed: Energy Grid not provided in model_information"
         
+        if("Grid Reduction Factor" in model_information):
+            self.reduction_val = model_information["Grid Reduction Factor"]
+        else:
+            self.reduction_val = 1
+        
         self.num_levels   = interaction_information["Number Levels"]
         
         self.rawDataModel = rMatrixFull(molecular_information,
@@ -44,42 +50,76 @@ class syndatData():
                                         model_information)
         self.true_gamma_matrix = self.rawDataModel.true_gamma_matrix
         
-        self.energy_grid       = model_information["Energy Grid"]
+        self.energy_grid       = model_information["Energy Grid"][::self.reduction_val]
         
-        self.exp_model          = Experimental_Model(title        = "sim_model",
-                                                     reaction     = "capture",
-                                                     energy_grid  = self.energy_grid,
-                                                     temp         = (interaction_information["Broadening Temperature"], 0))
-
-        self.exp_model.template = os.path.realpath("capture_template.inp")
+        self.trans_model            = Experimental_Model(title        = "sim_model",
+                                                         reaction     = "transmission",
+                                                         energy_grid  = self.energy_grid,
+                                                         temp         = (interaction_information["Broadening Temperature"], 0))
+        self.trans_model.template   = os.path.realpath("sammy_template.inp")
+        
+        self.capture_model          = Experimental_Model(title        = "sim_model",
+                                                         reaction     = "capture",
+                                                         energy_grid  = self.energy_grid,
+                                                         temp         = (interaction_information["Broadening Temperature"], 0))
+        self.capture_model.template = os.path.realpath("sammy_template.inp")
         
     def generate_Data(self):
         raw_data = self.rawDataModel.generate_Data()
         
-        data_composite = pd.DataFrame({"E":self.energy_grid, "true":raw_data})
+        trans_data   = pd.DataFrame({"E":self.energy_grid, "true":raw_data[::self.reduction_val,0]})
+        capture_data = pd.DataFrame({"E":self.energy_grid, "true":raw_data[::self.reduction_val,1]})
 
         syn_opt   = syndatOPT(sampleRES            = False,
-                              calculate_covariance = False,
                               explicit_covariance  = False)
 
         with contextlib.redirect_stdout(None):
+            trans_gen_model   = Transmission_RPI()
+            trans_gen_model.approximate_unknown_data(exp_model  = self.trans_model,
+                                                     smooth     = False,
+                                                     check_trig = True)
+            trans_red_model   = Transmission_RPI()
+            trans_red_model.approximate_unknown_data(exp_model  = self.trans_model,
+                                                     smooth     = False,
+                                                     check_trig = True)
+            
             capture_gen_model = Capture_Yield_RPI()
-            capture_gen_model.approximate_unknown_data(exp_model  = self.exp_model,
-                                                    smooth     = False,
-                                                    check_trig = True)
+            capture_gen_model.approximate_unknown_data(exp_model  = self.capture_model,
+                                                       smooth     = False,
+                                                       check_trig = True)
             capture_red_model = Capture_Yield_RPI()
-            capture_red_model.approximate_unknown_data(exp_model  = self.exp_model,
-                                                    smooth     = False,
-                                                    check_trig = True)
+            capture_red_model.approximate_unknown_data(exp_model  = self.capture_model,
+                                                       smooth     = False,
+                                                       check_trig = True)
 
-        syn_model = Syndat_Model(self.exp_model,
+
+        syn_opt.calculate_covariance = True
+        syn_model = Syndat_Model(self.trans_model,
+                                 trans_gen_model,
+                                 trans_red_model,
+                                 options = syn_opt)
+        syn_model.sample(num_samples = 1,
+                         pw_true     = trans_data)
+
+        data_sample  = syn_model.samples[0]
+        trans_data_frame = data_sample.pw_reduced[["E","exp","exp_unc"]]
+        trans_covariance = data_sample.covariance_data
+        
+        
+        syn_opt.calculate_covariance = False
+        syn_model = Syndat_Model(self.capture_model,
                                  capture_gen_model,
                                  capture_red_model,
                                  options = syn_opt)
         syn_model.sample(num_samples = 1,
-                         pw_true     = data_composite)
+                         pw_true     = capture_data)
 
         data_sample  = syn_model.samples[0]
-        syndat_dataframe = data_sample.pw_reduced[["E","exp","exp_unc"]]
+        capture_data_frame = data_sample.pw_reduced[["E","exp","exp_unc"]]
+        
+        
+        final_data = {"Transmission": trans_data_frame,
+                      "Covariance":   trans_covariance,
+                      "Capture":      capture_data_frame}
 
-        return(syndat_dataframe)
+        return(final_data)

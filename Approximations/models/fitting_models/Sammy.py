@@ -62,14 +62,14 @@ class sammy():
                                         "L":       np.zeros(interaction_information["Number Levels"])})
 
         self.part_pair          = Particle_Pair(isotope          = molecular_information["Target Name"],
-                                        resonance_ladder = self.res_ladder,
-                                        formalism        = "XCT",
-                                        ac               = interaction_information["Effective Radius"]/(10**-14),
-                                        energy_range     = [np.min(self.energy_grid),np.max(self.energy_grid)],
-                                        energy           = self.energy_grid,
-                                        target           = target,
-                                        projectile       = Neutron,
-                                        l_max            = 1)
+                                                resonance_ladder = self.res_ladder,
+                                                formalism        = "XCT",
+                                                ac               = interaction_information["Effective Radius"]/(10**-14),
+                                                energy_range     = [np.min(self.energy_grid),np.max(self.energy_grid)],
+                                                energy           = self.energy_grid,
+                                                target           = target,
+                                                projectile       = Neutron,
+                                                l_max            = 1)
 
         self.part_pair.add_spin_group(Jpi     = str(spin),
                                       J_ID    = 1,
@@ -105,15 +105,23 @@ class sammy():
     
     def fit_call(self,fitting_parameters):
         def fit(initial_guess, data):
-            trans_data   = pd.DataFrame({"E":self.energy_grid, "exp":data[::self.reduction_factor,0], "exp_unc":np.clip(data[::self.reduction_factor,0]*self.fudge_factor,1e-6,None)})
-            capture_data = pd.DataFrame({"E":self.energy_grid, "exp":data[::self.reduction_factor,1], "exp_unc":np.clip(data[::self.reduction_factor,1]*self.fudge_factor,1e-6,None)})
+            if(isinstance(data,dict)):
+                trans_data   = data["Transmission"]
+                trans_cov    = data["Covariance"]
+                capture_data = data["Capture"]
+                capture_cov  = {}
+            else:
+                trans_data   = pd.DataFrame({"E":self.energy_grid, "exp":data[::self.reduction_factor,0], "exp_unc":np.clip(data[::self.reduction_factor,0]*self.fudge_factor,1e-6,None)})
+                trans_cov    = {}
+                capture_data = pd.DataFrame({"E":self.energy_grid, "exp":data[::self.reduction_factor,1], "exp_unc":np.clip(data[::self.reduction_factor,1]*self.fudge_factor,1e-6,None)})
+                capture_cov  = {}
             
             sammy_input = sammy_classes.SammyInputDataYW(particle_pair = self.part_pair,
-                                                         resonance_ladder = self.res_ladder,  
+                                                         resonance_ladder = self.res_ladder,
                                                      
                                                          datasets= [trans_data, capture_data],
                                                          experiments = [self.trans_model, self.capture_model],
-                                                         experimental_covariance= [{},{}], 
+                                                         experimental_covariance= [trans_cov, capture_cov], 
                                                          
                                                          max_steps = 10,
                                                          iterations = 3,

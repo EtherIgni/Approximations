@@ -1,0 +1,138 @@
+
+ **********************************************************
+ ***                                                    ***
+ ***    SAMMY Version 8.1.pre-b1 - e8568a76             ***                      
+ ***                                                    ***
+ **********************************************************
+
+ Name of input file: 
+ >>> solvebayes_initial.inp                                                 <<<
+ Name of parameter file: 
+ >>> results/step1.par                                                      <<<
+ Values used for constants -- Kvendf=1
+   mass of neutron =   1.008664915780000 in amu
+   sqrt(m/2)       =  72.298252185556009
+   sqrt(2m)/hbar   =   0.000219680781008
+   Boltzman        =   0.000086173420000
+   finestructure   =   0.034447600026222 in 1/(amu*F)
+ Name of WY files:
+ >>> iterate/trans_model_iter0.ywy                                          <<<
+ >>> iterate/capture_model_iter0.ywy                                        <<<
+ Emin and Emax =    0.00000       0.00000    
+
+
+ *****************************************************************************
+ *****                                                                   *****
+ ***** Title                                                             *****
+ *****                                                                   *****
+ *****************************************************************************
+
+
+ Input quantities from line number 2 are:
+   Alfnm1, Alfnm2 = ##Ta181     ##       Atomic Weight = 181.000000
+   Nepnts Itmax  Icorr  Nxtra  Iptdop Iptwid Ixxchn
+        0      1     50      0      9      5      0
+   Ndigit Idropp Matnum Kkkkza
+        2      2      0      0
+Adjusted  Itmax  Icorr  Nxtra  Iptdop Iptwid Ixxchn
+        0      2     50      0      9      5      0
+   Ndigit Idropp Matnum Kkkkza
+        2      2      0      0
+
+
+ TARGET ELEMENT IS Ta181     
+ ATOMIC WEIGHT IS 181.000000
+
+
+ *********** Alphanumeric Control Information *********
+
+ TWENTY
+ EV
+ GENERATE PLOT FILE AUTOMATICALLY
+ XCT
+ SOLVE BAYES EQUATIONS
+ WY
+ CHI SQUARED IS WANTED
+ REMEMBER ORIGINAL PArameter values
+ BROADENING IS WANTED
+ USE FREE GAS MODEL OF DOPPLER BROADENING
+ 
+ **** end of Alphanumeric Control Information *********
+
+
+
+ Effective Temperature=   0.00000
+    Flight Path=   0.00000 Meters +/-   0.00000/2 Meters
+      Deltae=     0.00000    Deltag=     0.00000
+      Delttt=     0.00000    Elowbr=  0.00000000
+
+ Target Thickness=   0.000    
+
+ **** Data type is <<< REACTION             >>> ****
+
+ Spin of incident particle is  0.5
+__________________________
+ 
+
+ Total  number of resonances is    2
+ Number of particle channels is    1
+ Number of spin groups is          1
+ Number of flagged parametrs is    6
+ Number of varied parameters is    6
+
+
+
+
+ ***** NEW VALUES FOR RESONANCE PARAMETERS               
+
+ SPIN GROUP NUMBER  1  WITH SPIN=  4.0, ABUNDANCE=  1.0000, AND G= 0.5625
+                effective radius =  8.2174E+00     
+                   "true" radius =  8.2174E+00     
+      ENERGY          GAMMA-          GAMMA-
+                      GAMMA          Inc Chan
+                                    L=0  SPIN= 4.0
+       (eV)        (MILLI-EV)       (MILLI-EV)
+  2.15002E+02(  1) 7.6452E+00(  2)  2.5390E+00(  3)
+  2.35006E+02(  4) 9.4212E-01(  5)  1.8296E+01(  6)
+ Expected          1.0327E+00       3.9370E+00
+  Value       +/-  5.7702E-04  +/-  2.0793E-03
+ EV changed        1.0327E+00       3.9370E+00
+ parameters   +/-  5.7702E-04  +/-  2.0793E-03
+
+
+    RADIUS          TEMPERATURE     THICKNESS
+  8.2174E+00       0.0000E+00       0.0000E+00     
+
+    DELTA-L         DELTA-T-GAUS     DELTA-T-EXP
+  0.0000E+00       0.0000E+00       0.0000E+00     
+
+
+
+ ***** CORRELATION MATRIX FOR OUTPUT PARAMETERS          
+
+    STD.DEV.  (REL.)   CORRELATION*100
+
+                       1   2   3   4   5   6
+   1 1.5350E-04 .000 100
+   2 7.8929E-03 .001  -8 100
+   3 2.1774E-03 .001   8 -85 100
+   4 6.8997E-05 .000   0   0   0 100
+   5 5.8700E-04 .001  -1 -11   1  -7 100
+   6 6.9569E-03 .000   0  -1   0  16 -53 100
+
+
+
+ ***** RATIO OF UNCERTAINTIES ON VARIED PARAMETERS       
+
+        NEW/OLD             NEW/OLD             NEW/OLD             NEW/OLD   
+ (  1)  3.0077E-02   (  2)  5.1395E-02   (  3)  4.3050E-02   (  4)  7.1816E-03
+ (  5)  3.1113E-02   (  6)  1.9037E-02
+ 
+
+ ***** RATIO OF UNCERTAINTIES ON VARIED U-PARAMETERS     
+
+        NEW/OLD             NEW/OLD             NEW/OLD             NEW/OLD   
+ (  1)  3.0077E-02   (  2)  5.1508E-02   (  3)  4.2963E-02   (  4)  7.1816E-03
+ (  5)  3.1133E-02   (  6)  1.9023E-02
+ 
+ Normal finish to SAMMY

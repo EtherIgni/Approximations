@@ -1,0 +1,156 @@
+
+ **********************************************************
+ ***                                                    ***
+ ***    SAMMY Version 8.1.pre-b1 - e8568a76             ***                      
+ ***                                                    ***
+ **********************************************************
+
+ Name of input file: 
+ >>> trans_model_initial.inp                                                <<<
+ Name of parameter file: 
+ >>> results/step1.par                                                      <<<
+ Values used for constants -- Kvendf=1
+   mass of neutron =   1.008664915780000 in amu
+   sqrt(m/2)       =  72.298252185556009
+   sqrt(2m)/hbar   =   0.000219680781008
+   Boltzman        =   0.000086173420000
+   finestructure   =   0.034447600026222 in 1/(amu*F)
+ GENERATE PLOT FILE AUTOMATICALLY                                                
+ Name of experimental data file is: 
+ >>> trans_model.dat                                                        <<<
+ Emin and Emax =    200.000       250.000    
+
+
+ *****************************************************************************
+ *****                                                                   *****
+ ***** Title                                                             *****
+ *****                                                                   *****
+ *****************************************************************************
+
+
+ Input quantities from line number 2 are:
+   Alfnm1, Alfnm2 = ##Ta181     ##       Atomic Weight = 181.000000
+   Nepnts Itmax  Icorr  Nxtra  Iptdop Iptwid Ixxchn
+        0      1     50      0      9      5      0
+   Ndigit Idropp Matnum Kkkkza
+        2      2      0      0
+Adjusted  Itmax  Icorr  Nxtra  Iptdop Iptwid Ixxchn
+        0      2     50      0      9      5      0
+   Ndigit Idropp Matnum Kkkkza
+        2      2      0      0
+
+
+ TARGET ELEMENT IS Ta181     
+ ATOMIC WEIGHT IS 181.000000
+
+
+ *********** Alphanumeric Control Information *********
+
+ TWENTY
+ EV
+ XCT
+ SOLVE BAYES EQUATIONS
+ YW
+ BROADENING IS WANTED
+ USE FREE GAS MODEL OF DOPPLER BROADENING
+ PRINT VARIED INPUT PARAMETERS
+ CHI SQUARED IS WANTED
+ PRINT BAYES CHI SQUARED
+ ODF FILE IS WANTED--SAMMY.ODF ,ZERO-TH O
+ 
+ **** end of Alphanumeric Control Information *********
+
+
+
+ Effective Temperature= 300.00000
+    Flight Path=  35.18500 Meters +/-   0.00000/2 Meters
+      Deltae=     0.00000    Deltag=     0.00000
+      Delttt=     0.00000    Elowbr=  0.00000000
+
+ Target Thickness=  0.6717E-01
+
+ **** Data type is <<< TRANS                >>> ****
+
+ Spin of incident particle is  0.5
+       #of  #of
+ Group Ent  Exit Jspin Relative  Ispin  g    Chn Lpnt Ishift eL Chspn
+    #  Chn  Chn         Abndnc                 #
+    1    1    0    4.0  1.0000    3.5 0.5625
+                                               1   1   0     0   4.0    
+__________________________
+ 
+
+ Total  number of resonances is    2
+ Number of particle channels is    1
+ Number of spin groups is          1
+ Number of flagged parametrs is    6
+ Number of varied parameters is    6
+
+
+
+
+ ***** INITIAL VALUES FOR PARAMETERS                     
+
+ SPIN GROUP NUMBER  1  WITH SPIN=  4.0, ABUNDANCE=  1.0000, AND G= 0.5625
+                effective radius =  8.1270E+00     
+                   "true" radius =  8.1270E+00     
+      ENERGY          GAMMA-          GAMMA-
+                      GAMMA          Inc Chan
+                                    L=0  SPIN= 4.0
+       (eV)        (MILLI-EV)       (MILLI-EV)
+  2.15002E+02(  1) 7.6786E+00(  2)  2.5289E+00(  3)
+  2.35006E+02(  4) 9.4333E-01(  5)  1.8272E+01(  6)
+
+
+    RADIUS          TEMPERATURE     THICKNESS
+  8.1270E+00       3.0000E+02       6.7166E-02     
+
+    DELTA-L         DELTA-T-GAUS     DELTA-T-EXP
+  0.0000E+00       0.0000E+00       0.0000E+00     
+
+
+
+ ***** CORRELATION MATRIX FOR INPUT PARAMETERS           
+
+ ***** STANDARD DEVIATION (SQRT OF DIAGONAL OF COV MATRX)
+
+        STD. DEV.           STD. DEV.           STD. DEV.           STD. DEV. 
+ (  1)  0.1811       (  2)  7.6786E-02   (  3)  2.5289E-02   (  4)  0.1936    
+ (  5)  9.4333E-03   (  6)  0.1827    
+ 
+ Emin   200.000     is less than the minimum energy in the data set
+ Emin has been changed to   209.996    
+ First 5 energies=
+     210.0000       210.0300       210.0600       210.0900       210.1200    
+ Last  5 energies=
+     239.9750       239.9450       239.9150       239.8850       239.8550    
+ Emax   250.000     is greater than the maximum energy in the data set
+ Emax has been changed to   239.979    
+ First 5 energies=
+     210.0000       210.0300       210.0600       210.0900       210.1200    
+ Last  5 energies=
+     239.9750       239.9450       239.9150       239.8850       239.8550    
+     Emind               Emins               Eminr               Emin
+      208.2587678929      209.9962493750      209.9962493750      209.9962493750
+     Emax                Emaxr               Emaxs               Emaxd
+      239.9787466250      239.9787466250      239.9787466250      241.8435935762
+
+ Doppler Width at Emin =  0.347870     and at Emax =  0.371876     eV
+  
+      E(keV)    Dopp_FWHM(keV)
+      0.209996         0.5792
+      0.224988         0.5996
+      0.239979         0.6192
+  
+
+ Energy range of data is from 2.09996E+02 to 2.39979E+02 eV.
+ Number of experimental data points =    1000
+
+
+ **  2 resonances have fewer than 9 points across width
+ Number of points in auxiliary grid =    1179
+ Number of parameters affected by this data set=    6
+
+ CUSTOMARY CHI SQUARED =   520.826    
+ CUSTOMARY CHI SQUARED DIVIDED BY NDAT =  0.520826    
+ Normal finish to SAMMY
